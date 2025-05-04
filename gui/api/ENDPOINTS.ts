@@ -1,4 +1,4 @@
-const API = process.env.NEXT_PUBLIC_API_URL;
+const API = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 export const ENDPOINTS = {
   createPack:  `${API}/pack/new`,

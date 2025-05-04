@@ -49,10 +49,19 @@ if __name__ == "__main__":
         shutil.copyfile(f"./gui/out/{file}", f"{OUT_DIR}/static/{file}")
 
     for dir in dirs:
-        print(f"Copied directory: './gui/out/{dir}' -> '{OUT_DIR}/static/{dir}'")
+        if dir == "_next":
+            print(f"Copied directory: './gui/out/{dir}' -> '{OUT_DIR}/static/{dir}'")
+            shutil.copytree(
+                f"./gui/out/{dir}", f"{OUT_DIR}/static/{dir}", dirs_exist_ok=True
+            )
+            continue
+        print(f"Copied directory: './gui/out/{dir}' -> '{OUT_DIR}/templates/{dir}'")
         shutil.copytree(
-            f"./gui/out/{dir}", f"{OUT_DIR}/static/{dir}", dirs_exist_ok=True
+            f"./gui/out/{dir}", f"{OUT_DIR}/templates/{dir}", dirs_exist_ok=True
         )
 
     print(f"Copied app: './src' -> '{OUT_DIR}'")
     shutil.copytree("./src", f"{OUT_DIR}/", dirs_exist_ok=True)
+
+    if os.path.exists(f"{OUT_DIR}/__pycache__") and os.path.isdir(f"{OUT_DIR}/__pycache__"):
+        shutil.rmtree(f"{OUT_DIR}/__pycache__")

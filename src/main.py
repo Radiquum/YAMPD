@@ -20,6 +20,8 @@ def index():
 def rewrite_next(path):
     if os.path.exists(f"./static/{path}"):
         return send_file(f"./static/{path}")
+    if os.path.exists(f"./templates/{path}.html"):
+        return render_template(f"{path}.html")
     return abort(404)
 
 
