@@ -1,0 +1,5 @@
+Flask
+flaskwebgui
+requests
+Pillow
+flask-socketio
