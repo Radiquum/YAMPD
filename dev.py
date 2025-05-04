@@ -5,15 +5,16 @@ import os
 if __name__ == "__main__":
 
     environment = os.environ.copy()
+    environment["is_dev"] = "True"
 
-    gui_proc = subprocess.Popen(["bun", "run", "dev"], cwd="./gui", shell = True)
-    app_proc = subprocess.Popen(["python", "main.py"], cwd="./src", shell = True)
+    gui_proc = subprocess.Popen(["bun", "run", "dev"], cwd="./gui", env=environment, shell = True)
+    app_proc = subprocess.Popen(["python", "main.py"], cwd="./src", env=environment, shell = True)
 
     try:
-        while gui_proc.poll() is None or app_proc is None:
+        while gui_proc.poll() is None or app_proc.poll() is None:
             time.sleep(0.1)
 
     except KeyboardInterrupt:
         gui_proc.terminate()
         app_proc.terminate()
-        print("Processed Terminated")
+        print("Processes Terminated")

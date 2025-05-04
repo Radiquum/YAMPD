@@ -6,11 +6,13 @@ import os
 app = Flask(__name__)
 
 
+# TODO: auto copy next html files to templates folder
 @app.route("/")
 def index():
     return render_template("index.html")
 
 
+# TODO: auto copy next static out on build to static folder
 @app.route("/<path:path>")
 def rewrite_next(path):
     if os.path.exists(f"./static/{path}"):
@@ -24,7 +26,9 @@ def page_not_found(e):
 
 
 if __name__ == "__main__":
-    # If you are debugging you can do that in the browser:
-    app.run(host="0.0.0.0", debug=True, use_reloader=True)
-    # If you want to view the flaskwebgui window:
-#   FlaskUI(app=app, server="flask").run()
+
+    # TODO: if env == dev then Flask if prod then FlaskUI
+    if os.getenv("is_dev") == "True":
+        app.run(host="0.0.0.0", debug=True, use_reloader=True)
+    else:
+        FlaskUI(app=app, server="flask").run()
