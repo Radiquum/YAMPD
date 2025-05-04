@@ -6,6 +6,7 @@ if __name__ == "__main__":
 
     environment = os.environ.copy()
     environment["is_dev"] = "True"
+    environment["NEXT_PUBLIC_API_URL"] = "http://127.0.0.1:5000/api"
 
     # TODO: handle multiple package managers line npm(node), deno, yarn
     # TODO?: install node deps automatically

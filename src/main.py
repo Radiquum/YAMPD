@@ -2,8 +2,13 @@ from flask import Flask
 from flask import render_template, redirect, url_for, send_file, abort
 from flaskwebgui import FlaskUI  # import FlaskUI
 import os
+from flask_cors import CORS
+
+from api import api
 
 app = Flask(__name__)
+app.register_blueprint(api)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 @app.route("/")

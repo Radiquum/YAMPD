@@ -1,2 +1,4 @@
 /.python-venv
 /dist
+__pycache__
+packs
