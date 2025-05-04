@@ -7,6 +7,9 @@ if __name__ == "__main__":
     environment = os.environ.copy()
     environment["is_dev"] = "True"
 
+    # TODO: handle multiple package managers line npm(node), deno, yarn
+    # TODO?: install node deps automatically
+
     gui_proc = subprocess.Popen(["bun", "run", "dev"], cwd="./gui", env=environment, shell = True)
     app_proc = subprocess.Popen(["python", "main.py"], cwd="./src", env=environment, shell = True)
 

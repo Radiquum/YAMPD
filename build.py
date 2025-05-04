@@ -23,6 +23,9 @@ if __name__ == "__main__":
 
     os.makedirs(OUT_DIR)
 
+    # TODO: handle multiple package managers line npm(node), deno, yarn
+    # TODO?: install node deps automatically
+
     if not args.no_rebuild:
         build = subprocess.call(["bun", "run", "build"], cwd="./gui", shell=True)
         if build != 0:
