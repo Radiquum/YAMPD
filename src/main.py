@@ -27,7 +27,6 @@ def page_not_found(e):
 
 if __name__ == "__main__":
 
-    # TODO: if env == dev then Flask if prod then FlaskUI
     if os.getenv("is_dev") == "True":
         app.run(host="0.0.0.0", debug=True, use_reloader=True)
     else:
