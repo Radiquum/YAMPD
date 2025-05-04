@@ -12,7 +12,12 @@ parser = argparse.ArgumentParser(
     description="Create and Download mod packs with ease",
     epilog="",
 )
-parser.add_argument("--no-rebuild", help="don't rebuild Next.js gui", action="store_true", default=False)
+parser.add_argument(
+    "--no-rebuild", help="don't rebuild Next.js frontend", action="store_true", default=False
+)
+parser.add_argument(
+    "--exe", help="create an executable file", action="store_true", default=False
+)
 
 
 if __name__ == "__main__":
@@ -63,5 +68,43 @@ if __name__ == "__main__":
     print(f"Copied app: './src' -> '{OUT_DIR}'")
     shutil.copytree("./src", f"{OUT_DIR}/", dirs_exist_ok=True)
 
-    if os.path.exists(f"{OUT_DIR}/__pycache__") and os.path.isdir(f"{OUT_DIR}/__pycache__"):
+    print(
+        f"Copied requirements.txt: './requirements.txt' -> '{OUT_DIR}/requirements.txt'"
+    )
+    shutil.copyfile(f"./requirements.txt", f"{OUT_DIR}/requirements.txt")
+
+    if args.exe:
+        build = subprocess.call(
+            [
+                "pyinstaller",
+                "main.py",
+                "-F",
+                "--add-data",
+                "static:static",
+                "--add-data",
+                "templates:templates",
+            ],
+            cwd="./dist",
+            shell=True,
+        )
+        if build != 0:
+            print("[ERROR] pyinstaller has failed to build an app")
+            raise
+
+        if os.path.exists(f"{OUT_DIR}/dist/main.exe"):
+            shutil.move(f"{OUT_DIR}/dist/main.exe", f"{OUT_DIR}/yamcpack.exe")
+        elif os.path.exists(f"{OUT_DIR}/dist/main"):
+            shutil.move(f"{OUT_DIR}/dist/main", f"{OUT_DIR}/yamcpack")
+        else:
+            print("[ERROR] no executable found")
+            raise
+
+        print("cleanup...")
+        shutil.rmtree(f"{OUT_DIR}/dist")
+        shutil.rmtree(f"{OUT_DIR}/build")
+        os.remove(f"{OUT_DIR}/main.spec")
+
+    if os.path.exists(f"{OUT_DIR}/__pycache__") and os.path.isdir(
+        f"{OUT_DIR}/__pycache__"
+    ):
         shutil.rmtree(f"{OUT_DIR}/__pycache__")

@@ -1,14 +1,30 @@
 from flask import Flask
-from flask import render_template, redirect, url_for, send_file, abort
+from flask import render_template, send_file, abort
 from flaskwebgui import FlaskUI  # import FlaskUI
 import os
-from flask_cors import CORS
+import sys
+
 
 from api import api
 
-app = Flask(__name__)
+
+def resource_path(relative_path):
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
+
+app = Flask(
+    __name__,
+    static_folder=resource_path("static"),
+    template_folder=resource_path("templates"),
+)
+
+
 app.register_blueprint(api)
-CORS(app, resources={r"/*": {"origins": "*"}})
+if os.getenv("is_dev") == "True":
+    from flask_cors import CORS
+    CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 @app.route("/")
@@ -18,9 +34,9 @@ def index():
 
 @app.route("/<path:path>")
 def rewrite_next(path):
-    if os.path.exists(f"./static/{path}"):
-        return send_file(f"./static/{path}")
-    if os.path.exists(f"./templates/{path}.html"):
+    if os.path.exists(f"{resource_path("static")}/{path}"):
+        return send_file(f"{resource_path("static")}/{path}")
+    if os.path.exists(f"{resource_path("templates")}/{path}.html"):
         return render_template(f"{path}.html")
     return abort(404)
 

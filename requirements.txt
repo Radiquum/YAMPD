@@ -3,4 +3,3 @@ flaskwebgui
 requests
 Pillow
 flask-socketio
-flask-cors
