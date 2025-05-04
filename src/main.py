@@ -24,6 +24,7 @@ app = Flask(
 app.register_blueprint(api)
 if os.getenv("is_dev") == "True":
     from flask_cors import CORS
+
     CORS(app, resources={r"/*": {"origins": "*"}})
 
 

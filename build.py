@@ -13,7 +13,10 @@ parser = argparse.ArgumentParser(
     epilog="",
 )
 parser.add_argument(
-    "--no-rebuild", help="don't rebuild Next.js frontend", action="store_true", default=False
+    "--no-rebuild",
+    help="don't rebuild Next.js frontend",
+    action="store_true",
+    default=False,
 )
 parser.add_argument(
     "--exe", help="create an executable file", action="store_true", default=False

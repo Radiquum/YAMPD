@@ -11,8 +11,12 @@ if __name__ == "__main__":
     # TODO: handle multiple package managers line npm(node), deno, yarn
     # TODO?: install node deps automatically
 
-    gui_proc = subprocess.Popen(["bun", "run", "dev"], cwd="./gui", env=environment, shell = True)
-    app_proc = subprocess.Popen(["python", "main.py"], cwd="./src", env=environment, shell = True)
+    gui_proc = subprocess.Popen(
+        ["bun", "run", "dev"], cwd="./gui", env=environment, shell=True
+    )
+    app_proc = subprocess.Popen(
+        ["python", "main.py"], cwd="./src", env=environment, shell=True
+    )
 
     try:
         while gui_proc.poll() is None or app_proc.poll() is None:

@@ -8,6 +8,7 @@ from PIL import Image
 from io import BytesIO
 import base64
 
+
 @api.route("/new", methods=["POST"])
 def APIPackNew():
     pack = {
@@ -54,7 +55,9 @@ def APIPackImageEdit(id):
     if image_mime == None or image_mime not in IMG_ALLOWED_MIME:
         return jsonify({"status": "error", "message": "wrong image format"})
 
-    image_data = base64.b64decode(re.sub("^data:image/.+;base64,", "", request.json.get("image")))
+    image_data = base64.b64decode(
+        re.sub("^data:image/.+;base64,", "", request.json.get("image"))
+    )
 
     image = Image.open(BytesIO(image_data))
     image = image.resize((512, 512), Image.Resampling.LANCZOS)

@@ -1,4 +1,5 @@
 import os
+
 PACKS_FOLDER = "./packs"
 if os.getenv("is_dev") == "True":
     PACKS_FOLDER = "../packs"
