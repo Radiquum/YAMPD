@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { HiDownload, HiTrash } from "react-icons/hi";
+import { ModTable } from "../components/ModTable";
 
 export default function PackPage() {
   const [packData, setPackData] = useState<Pack | null>(null);
@@ -59,10 +60,10 @@ export default function PackPage() {
 
     if (window.confirm(`Delete pack ${packData.title}?`)) {
       fetch(`${PACKS_ENDPOINT("deletePack", packData._id)}`);
-      const ur = new URL(window.location.href)
-      ur.searchParams.delete("id")
-      ur.pathname = "/"
-      window.location.href = ur.href
+      const ur = new URL(window.location.href);
+      ur.searchParams.delete("id");
+      ur.pathname = "/";
+      window.location.href = ur.href;
     }
   }
 
@@ -75,7 +76,7 @@ export default function PackPage() {
       )}
       {packData && (
         <div>
-          <Card className="sticky top-0 left-0 right-0">
+          <Card className="sticky top-0 left-0 right-0 z-10">
             <div className="flex gap-4 items-center justify-between">
               <div>
                 <p className="text-xl font-semibold">{packData.version}</p>
@@ -112,6 +113,9 @@ export default function PackPage() {
               </div>
             </div>
           </Card>
+          <div className="mt-4">
+            <ModTable />
+          </div>
         </div>
       )}
     </div>

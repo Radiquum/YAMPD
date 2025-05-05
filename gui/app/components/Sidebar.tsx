@@ -1,6 +1,6 @@
 "use client";
 
-import { PACKS_ENDPOINT } from "@/api/ENDPOINTS";
+import { PACK_ENDPOINT, PACKS_ENDPOINT } from "@/api/ENDPOINTS";
 import { Pack } from "@/types/pack";
 import {
   Sidebar,
@@ -31,11 +31,29 @@ export const Menu = () => {
           {packsData &&
             packsData.map((pack) => {
               return (
-                <SidebarItem href={`/pack/?id=${pack._id}`} key={pack._id}>
-                  <p className="line-clamp-1">{pack.title}</p>
-                  <p className="text-sm text-gray-400 line-clamp-1">
-                    by {pack.author}
-                  </p>
+                <SidebarItem
+                  href={`/pack/?id=${pack._id}`}
+                  key={pack._id}
+                  theme={{
+                    content: {
+                      base: "p-0!",
+                    },
+                  }}
+                >
+                  <div className="flex gap-2 items-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      alt=""
+                      src={PACK_ENDPOINT("getPackImage", pack._id)}
+                      className="w-10 h-10 rounded-md"
+                    />
+                    <div>
+                      <p className="line-clamp-1">{pack.title}</p>
+                      <p className="text-sm text-gray-400 line-clamp-1">
+                        by {pack.author}
+                      </p>
+                    </div>
+                  </div>
                 </SidebarItem>
               );
             })}
