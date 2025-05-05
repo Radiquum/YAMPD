@@ -3,6 +3,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { Menu } from "./components/Sidebar";
 import { Bounce, ToastContainer } from "react-toastify";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,7 +25,9 @@ export const App = ({ children }: APPProps) => {
       className={`${geistSans.variable} ${geistMono.variable} antialiased flex h-screen overflow-hidden`}
     >
       <Menu></Menu>
-      <div className="p-2 overflow-auto w-full">{children}</div>
+      <div className="p-2 overflow-auto w-full">
+        <Suspense>{children}</Suspense>
+      </div>
       <ToastContainer
         position="bottom-right"
         autoClose={5000}

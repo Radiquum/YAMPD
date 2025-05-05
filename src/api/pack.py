@@ -8,6 +8,7 @@ from io import BytesIO
 import base64
 import json
 
+
 @apiPack.route("/<id>", methods=["GET"])
 def getPack(id):
     if not os.path.exists(f"{PACKS_FOLDER}/{id}/packfile.json"):
@@ -21,12 +22,15 @@ def getPack(id):
 
     return jsonify(pack)
 
+
 @apiPack.route("/<id>/image", methods=["GET"])
 def getPackImage(id):
     if not os.path.exists(f"{PACKS_FOLDER}/{id}/packicon.png"):
         return redirect(url_for("static", filename="defaulticon.png"))
 
-    return send_file(f"{PACKS_FOLDER}/{id}/packicon.png")
+    with open(f"{PACKS_FOLDER}/{id}/packicon.png", mode="rb") as fp:
+        f = BytesIO(fp.read())
+        return send_file(f, mimetype="image/png")
 
 
 @apiPack.route("/<id>/image/edit", methods=["POST"])

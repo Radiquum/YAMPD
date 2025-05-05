@@ -5,7 +5,6 @@ import { Label, TextInput, Select } from "flowbite-react";
 import { useState } from "react";
 import { HiUser, HiAnnotation } from "react-icons/hi";
 import { Button } from "flowbite-react";
-import { useRouter } from "next/navigation";
 
 import mc from "../../../api/mc_version.json";
 import { PACKS_ENDPOINT, PACK_ENDPOINT } from "@/api/ENDPOINTS";
@@ -13,7 +12,6 @@ import { toast } from "react-toastify";
 const mcr = mc.reverse();
 
 export default function PackNew() {
-  const router = useRouter();
   const [image, setImage] = useState<null | string>(null);
   const [imageMime, setImageMime] = useState<null | string>(null);
   const [packInfo, setPackInfo] = useState({
@@ -96,7 +94,10 @@ export default function PackNew() {
         closeOnClick: true,
         draggable: true,
       });
-      router.push(`/pack/?id=${data.id}`);
+      const ur = new URL(window.location.href);
+      ur.searchParams.set("id", data.id);
+      ur.pathname = "/pack";
+      window.location.href = ur.href;
     }
 
     _submit();

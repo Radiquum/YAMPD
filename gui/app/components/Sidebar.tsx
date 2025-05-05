@@ -32,7 +32,7 @@ export const Menu = () => {
             packsData.map((pack) => {
               return (
                 <SidebarItem
-                  href={`/pack/?id=${pack._id}`}
+                  href={`/pack?id=${pack._id}`}
                   key={pack._id}
                   theme={{
                     content: {

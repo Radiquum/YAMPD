@@ -32,7 +32,7 @@ export const ModTable = () => {
               <Checkbox />
             </TableCell>
             <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Apple MacBook Pro 17"
+              Apple MacBook Pro 17
             </TableCell>
             <TableCell>Sliver</TableCell>
             <TableCell>Laptop</TableCell>
