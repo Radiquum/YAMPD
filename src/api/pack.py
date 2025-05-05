@@ -1,53 +1,23 @@
 import os
 import re
-from . import api
-from flask import request, jsonify
+from . import apiPack
+from flask import request, jsonify, send_file, redirect
 from config import PACKS_FOLDER, IMG_ALLOWED_MIME
-import json
 from PIL import Image
 from io import BytesIO
 import base64
 
 
-@api.route("/new", methods=["POST"])
-def APIPackNew():
-    pack = {
-        "formatVersion": 0,
-        "modpackVersion": 0,
-        "title": request.json.get("title"),
-        "author": request.json.get("author"),
-        "version": request.json.get("version"),
-        "modloader": request.json.get("modloader"),
-        "updateURL": "",
-        "mods": [],
-    }
-    title = pack.get("title").replace(" ", "_")
+@apiPack.route("/<id>/image", methods=["GET"])
+def getPackImage(id):
+    if not os.path.exists(f"{PACKS_FOLDER}/{id}/packicon.png"):
+        return redirect("/favicon.ico")
 
-    if os.path.exists(f"{PACKS_FOLDER}/{title}"):
-        return jsonify({"status": "error", "message": "pack already exists"})
-
-    os.makedirs(f"{PACKS_FOLDER}/{title}", exist_ok=True)
-
-    with open(
-        os.path.abspath(f"{PACKS_FOLDER}/{title}/packfile.json"),
-        mode="w",
-        encoding="utf-8",
-    ) as fp:
-        json.dump(pack, fp)
-        fp.close()
-
-    return jsonify(
-        {
-            "status": "ok",
-            "message": f"pack {pack.get('title')} created",
-            "id": title,
-        }
-    )
+    return send_file(f"{PACKS_FOLDER}/{id}/packicon.png")
 
 
-@api.route("/<id>/image/edit", methods=["POST"])
-def APIPackImageEdit(id):
-
+@apiPack.route("/<id>/image/edit", methods=["POST"])
+def editPackImage(id):
     image_string = request.json.get("image")
     image_mime = request.json.get("mimetype")
     if image_string == None:

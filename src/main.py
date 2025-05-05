@@ -5,7 +5,8 @@ import os
 import sys
 
 
-from api import api
+from api import apiPack
+from api import apiPacks
 
 
 def resource_path(relative_path):
@@ -21,7 +22,10 @@ app = Flask(
 )
 
 
-app.register_blueprint(api)
+app.register_blueprint(apiPack)
+app.register_blueprint(apiPacks)
+
+
 if os.getenv("is_dev") == "True":
     from flask_cors import CORS
 

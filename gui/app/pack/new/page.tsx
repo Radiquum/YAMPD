@@ -8,7 +8,7 @@ import { Button } from "flowbite-react";
 import { useRouter } from "next/navigation";
 
 import mc from "../../../api/mc_version.json";
-import { ENDPOINTS, PACK_IMG_ENDPOINTS } from "@/api/ENDPOINTS";
+import { PACKS_ENDPOINT, PACK_ENDPOINT } from "@/api/ENDPOINTS";
 import { toast } from "react-toastify";
 const mcr = mc.reverse();
 
@@ -52,7 +52,7 @@ export default function PackNew() {
     async function _submit() {
       const tid = toast.loading(`Creating Pack "${packInfo.title}"`)
 
-      const res = await fetch(`${ENDPOINTS.createPack}`, {
+      const res = await fetch(PACKS_ENDPOINT("createPack"), {
         method: "POST",
         body: JSON.stringify(packInfo),
         headers: {
@@ -68,7 +68,7 @@ export default function PackNew() {
       }
 
       if (image) {
-        await fetch(`${PACK_IMG_ENDPOINTS("editPackImage", data.id)}`, {
+        await fetch(`${PACK_ENDPOINT("editPackImage", data.id)}`, {
           method: "POST",
           body: JSON.stringify({
             image: image,
