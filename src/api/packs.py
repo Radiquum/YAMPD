@@ -5,6 +5,26 @@ from config import PACKS_FOLDER
 import json
 
 
+@apiPacks.route("/all", methods=["GET"])
+def getPacks():
+    packs = []
+
+    if not os.path.exists(f"{PACKS_FOLDER}"):
+        os.makedirs(f"{PACKS_FOLDER}", exist_ok=True)
+        return jsonify(packs)
+
+    pack_folders = [f.name for f in os.scandir(PACKS_FOLDER) if f.is_dir()]
+    for pack_folder in pack_folders:
+        if not os.path.exists(f"{PACKS_FOLDER}/{pack_folder}/packfile.json"):
+            continue
+        with open(f"{PACKS_FOLDER}/{pack_folder}/packfile.json") as fp:
+            pack = json.load(fp)
+            pack["_id"] = pack_folder
+            packs.append(pack)
+            fp.close()
+    return jsonify(packs)
+
+
 @apiPacks.route("/new", methods=["POST"])
 def createPack():
     pack = {

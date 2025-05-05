@@ -1,7 +1,7 @@
 import os
 import re
 from . import apiPack
-from flask import request, jsonify, send_file, redirect
+from flask import request, jsonify, send_file, redirect, url_for
 from config import PACKS_FOLDER, IMG_ALLOWED_MIME
 from PIL import Image
 from io import BytesIO
@@ -11,7 +11,7 @@ import base64
 @apiPack.route("/<id>/image", methods=["GET"])
 def getPackImage(id):
     if not os.path.exists(f"{PACKS_FOLDER}/{id}/packicon.png"):
-        return redirect("/favicon.ico")
+        return redirect(url_for("static", filename="defaulticon.png"))
 
     return send_file(f"{PACKS_FOLDER}/{id}/packicon.png")
 
