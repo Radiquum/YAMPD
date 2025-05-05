@@ -82,7 +82,7 @@ export default function PackNew() {
       }
 
       toast.update(tid, {render: data.message, type: "success", isLoading: false})
-      router.push(`/pack/${data.id}`)
+      router.push(`/pack/?id=${data.id}`)
     }
 
     _submit();

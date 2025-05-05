@@ -1,12 +1,25 @@
 import os
 import re
 from . import apiPack
-from flask import request, jsonify, send_file, redirect, url_for
+from flask import request, jsonify, send_file, redirect, url_for, abort
 from config import PACKS_FOLDER, IMG_ALLOWED_MIME
 from PIL import Image
 from io import BytesIO
 import base64
+import json
 
+@apiPack.route("/<id>", methods=["GET"])
+def getPack(id):
+    if not os.path.exists(f"{PACKS_FOLDER}/{id}/packfile.json"):
+        return jsonify({"status": "error", "message": "not found"}), 404
+
+    pack = {}
+    with open(f"{PACKS_FOLDER}/{id}/packfile.json") as fp:
+        pack = json.load(fp)
+        pack["_id"] = id
+        fp.close()
+
+    return jsonify(pack)
 
 @apiPack.route("/<id>/image", methods=["GET"])
 def getPackImage(id):

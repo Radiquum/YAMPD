@@ -3,6 +3,7 @@ from . import apiPacks
 from flask import request, jsonify
 from config import PACKS_FOLDER
 import json
+import shutil
 
 
 @apiPacks.route("/all", methods=["GET"])
@@ -57,5 +58,16 @@ def createPack():
             "status": "ok",
             "message": f"pack {pack.get('title')} created",
             "id": title,
+        }
+    )
+
+
+@apiPacks.route("/<id>/delete", methods=["GET"])
+def deletePack(id):
+    shutil.rmtree(f"{PACKS_FOLDER}/{id}")
+    return jsonify(
+        {
+            "status": "ok",
+            "message": f"pack deleted",
         }
     )

@@ -30,7 +30,7 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-2">
           {packsData.map((pack) => {
             return (
-              <Link key={pack._id} href={`/pack/${pack._id}`}>
+              <Link key={pack._id} href={`/pack/?id=${pack._id}`}>
                 <Card>
                   <div className="flex gap-2 items-center">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
