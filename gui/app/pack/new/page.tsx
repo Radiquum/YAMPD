@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 const mcr = mc.reverse();
 
 export default function PackNew() {
-  const router = useRouter()
+  const router = useRouter();
   const [image, setImage] = useState<null | string>(null);
   const [imageMime, setImageMime] = useState<null | string>(null);
   const [packInfo, setPackInfo] = useState({
@@ -50,7 +50,7 @@ export default function PackNew() {
     e.preventDefault();
 
     async function _submit() {
-      const tid = toast.loading(`Creating Pack "${packInfo.title}"`)
+      const tid = toast.loading(`Creating Pack "${packInfo.title}"`);
 
       const res = await fetch(PACKS_ENDPOINT("createPack"), {
         method: "POST",
@@ -63,7 +63,14 @@ export default function PackNew() {
       const data = await res.json();
 
       if (data.status != "ok") {
-        toast.update(tid, {render: data.message, type: "error", isLoading: false})
+        toast.update(tid, {
+          render: data.message,
+          type: "error",
+          isLoading: false,
+          autoClose: 2500,
+          closeOnClick: true,
+          draggable: true,
+        });
         return;
       }
 
@@ -72,7 +79,7 @@ export default function PackNew() {
           method: "POST",
           body: JSON.stringify({
             image: image,
-            mimetype: imageMime
+            mimetype: imageMime,
           }),
           headers: {
             "content-type": "application/json",
@@ -81,8 +88,15 @@ export default function PackNew() {
         });
       }
 
-      toast.update(tid, {render: data.message, type: "success", isLoading: false})
-      router.push(`/pack/?id=${data.id}`)
+      toast.update(tid, {
+        render: data.message,
+        type: "success",
+        isLoading: false,
+        autoClose: 2500,
+        closeOnClick: true,
+        draggable: true,
+      });
+      router.push(`/pack/?id=${data.id}`);
     }
 
     _submit();
