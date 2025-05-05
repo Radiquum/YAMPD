@@ -7,6 +7,8 @@ if __name__ == "__main__":
     environment = os.environ.copy()
     environment["is_dev"] = "True"
     environment["NEXT_PUBLIC_API_URL"] = "http://127.0.0.1:5000/api"
+    environment["MODRINTH_UA"] = "radiquum/YAMPD (kentai.waah@gmail.com)"
+    environment["CURSEFORGE_API_KEY"] = "$2a$10$bL4bIL5pUWqfcO7KQtnMReakwtfHbNKh6v1uTpKlzhwoueEJQnPnm"
 
     # TODO: handle multiple package managers line npm(node), deno, yarn
     # TODO?: install node deps automatically

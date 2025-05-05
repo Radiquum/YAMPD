@@ -86,14 +86,6 @@ export default function PackNew() {
         });
       }
 
-      toast.update(tid, {
-        render: data.message,
-        type: "success",
-        isLoading: false,
-        autoClose: 2500,
-        closeOnClick: true,
-        draggable: true,
-      });
       const ur = new URL(window.location.href);
       ur.searchParams.set("id", data.id);
       ur.pathname = "/pack";

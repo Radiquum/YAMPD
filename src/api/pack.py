@@ -7,12 +7,13 @@ from PIL import Image
 from io import BytesIO
 import base64
 import json
+from .source import Modrinth
 
 
 @apiPack.route("/<id>", methods=["GET"])
 def getPack(id):
     if not os.path.exists(f"{PACKS_FOLDER}/{id}/packfile.json"):
-        return jsonify({"status": "error", "message": "not found"}), 404
+        return jsonify({"status": "error", "message": "pack not found"}), 404
 
     pack = {}
     with open(f"{PACKS_FOLDER}/{id}/packfile.json") as fp:
@@ -57,5 +58,51 @@ def editPackImage(id):
         {
             "status": "ok",
             "message": "image updated",
+        }
+    )
+
+
+@apiPack.route("/<id>/mod/add", methods=["POST"])
+def addMod(id):
+    source = request.json.get("source", None)
+    slug = request.json.get("slug", None)
+    version = request.json.get("version", None)
+    pack = {}
+    mod = {}
+
+    if not os.path.exists(f"{PACKS_FOLDER}/{id}/packfile.json"):
+        return jsonify({"status": "error", "message": "pack not found"})
+    with open(f"{PACKS_FOLDER}/{id}/packfile.json") as fp:
+        pack = json.load(fp)
+        fp.close()
+    mod_loader = pack.get("modloader").lower()
+    game_version = pack.get("version")
+
+    if not source:
+        return jsonify({"status": "error", "message": "mod source is required"})
+    if not slug:
+        return jsonify({"status": "error", "message": "mod slug is required"})
+
+    for mod in pack["mods"]:
+        if mod.get("slug") == slug:
+            return jsonify({"status": "error", "message": "mod already exists"})
+
+    if source == "Modrinth":
+        mod = Modrinth.getModrinthMod(slug, version, mod_loader, game_version)
+
+    if mod.get("status") != "ok":
+        return jsonify({"status": "error", "message": mod.get("message")})
+
+    pack["modpackVersion"] += 1
+    pack["mods"].append(mod.get("mod"))
+    with open(f"{PACKS_FOLDER}/{id}/packfile.json", mode="w", encoding="utf-8") as fp:
+        json.dump(pack, fp)
+        fp.close()
+
+    return jsonify(
+        {
+            "status": "ok",
+            "message": f"mod {mod.get("mod").get('title')} ({slug}) has been added",
+            "mod": mod.get("mod"),
         }
     )

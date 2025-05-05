@@ -1,26 +1,55 @@
 "use client";
 
-import { PACK_ENDPOINT, PACKS_ENDPOINT } from "@/api/ENDPOINTS";
+import { MOD_ENDPOINT, PACK_ENDPOINT, PACKS_ENDPOINT } from "@/api/ENDPOINTS";
 import { Pack } from "@/types/pack";
-import { Button, Card, Spinner } from "flowbite-react";
+import {
+  Button,
+  Card,
+  Label,
+  Select,
+  Spinner,
+  TextInput,
+} from "flowbite-react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Modal, ModalBody, ModalFooter, ModalHeader } from "flowbite-react";
 
-import { HiDownload, HiTrash } from "react-icons/hi";
+import { HiDownload, HiPlusCircle, HiTrash } from "react-icons/hi";
 import { ModTable } from "../components/ModTable";
+import { toast } from "react-toastify";
+import { Mod } from "@/types/mod";
 
 export default function PackPage() {
   const [packData, setPackData] = useState<Pack | null>(null);
+  const [packMods, setPackMods] = useState<Mod[]>([]);
   const [packDataLoading, setPackDataLoading] = useState(true);
   const router = useRouter();
   const id = useSearchParams().get("id") || "";
+
+  const [addModModalOpen, setAddModModalOpen] = useState(true);
+  const [modSource, setModSource] = useState<"Modrinth" | "CurseForge">(
+    "Modrinth"
+  );
+  const [modUrl, setModUrl] = useState({
+    placeholer: "https://modrinth.com/mod/{ slug }</version/{ file_id }>",
+    value: "",
+  });
+  // const [modParams, setModParams] = useState<{
+  //   slug: string;
+  //   version: string | null;
+  // }>({
+  //   slug: "",
+  //   version: null,
+  // });
 
   useEffect(() => {
     async function _getPacksData() {
       const res = await fetch(PACK_ENDPOINT("getPack", id));
       if (!res.ok) router.push("/404");
-      setPackData(await res.json());
+      const data: Pack = await res.json();
+      setPackData(data);
+      setPackMods(data.mods);
       setPackDataLoading(false);
     }
     if (id) {
@@ -67,6 +96,127 @@ export default function PackPage() {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleModSource = (e: any) => {
+    switch (e.target.value) {
+      case "Modrinth":
+        setModSource("Modrinth");
+        setModUrl({
+          placeholer: "https://modrinth.com/mod/{ slug }</version/{ file_id }>",
+          value: "",
+        });
+        break;
+      case "CurseForge":
+        setModSource("CurseForge");
+        setModUrl({
+          placeholer:
+            "https://www.curseforge.com/minecraft/mc-mods/{ slug }</files/{ file_id }>",
+          value: "",
+        });
+        break;
+    }
+  };
+
+  async function addMod() {
+    let slug = null;
+    let version = null;
+
+    if (!modUrl.value) {
+      toast.error("Mod url is required", {
+        autoClose: 2500,
+        closeOnClick: true,
+        draggable: true,
+      });
+      return;
+    }
+
+    switch (modSource) {
+      case "Modrinth":
+        const _tmp = modUrl.value.split("/mod/");
+        if (_tmp.length == 1) {
+          toast.error("invalid Modrinth url", {
+            autoClose: 2500,
+            closeOnClick: true,
+            draggable: true,
+          });
+          return;
+        }
+        const _tmp2 = _tmp[1].split("/version/");
+        slug = _tmp2[0];
+        if (_tmp2.length > 1) {
+          version = _tmp2[1];
+        }
+        break;
+      case "CurseForge":
+        const _tmp3 = modUrl.value.split("/mc-mods/");
+        if (_tmp3.length == 1) {
+          toast.error("invalid CurseForge url", {
+            autoClose: 2500,
+            closeOnClick: true,
+            draggable: true,
+          });
+          return;
+        }
+        const _tmp4 = _tmp3[1].split("/files/");
+        slug = _tmp4[0];
+        if (_tmp4.length > 1) {
+          version = _tmp4[1];
+        }
+        break;
+    }
+
+    slug = slug.replace("/", "");
+    version = version ? version.replace("/", "") : null;
+
+    // if (packMods.find((elem) => elem.slug == slug)) {
+    //   toast.error(`mod (${slug}) already exists`, {
+    //     autoClose: 2500,
+    //     closeOnClick: true,
+    //     draggable: true,
+    //   });
+    //   return;
+    // }
+
+    if (!packData) return;
+    const tid = toast.loading(`Adding mod`);
+    const res = await fetch(MOD_ENDPOINT("addMod", packData._id), {
+      method: "POST",
+      body: JSON.stringify({
+        slug,
+        version,
+        source: modSource,
+      }),
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+    });
+    const data = await res.json();
+
+    if (data.status != "ok") {
+      toast.update(tid, {
+        render: data.message,
+        type: "error",
+        isLoading: false,
+        autoClose: 2500,
+        closeOnClick: true,
+        draggable: true,
+      });
+      return;
+    }
+
+    setPackMods([...packMods, data.mod]);
+    toast.update(tid, {
+      render: data.message,
+      type: "success",
+      isLoading: false,
+      autoClose: 2500,
+      closeOnClick: true,
+      draggable: true,
+    });
+    setModUrl({ ...modUrl, value: "" })
+  }
+
   return (
     <div>
       {packDataLoading && (
@@ -104,11 +254,14 @@ export default function PackPage() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button color={"red"} onClick={() => deletePack()}>
-                  Delete <HiTrash className="ml-2 h-5 w-5" />
+                <Button onClick={() => setAddModModalOpen(true)}>
+                  Add mod <HiPlusCircle className="ml-2 h-5 w-5" />
                 </Button>
                 <Button>
                   Download <HiDownload className="ml-2 h-5 w-5" />
+                </Button>
+                <Button color={"red"} onClick={() => deletePack()}>
+                  Delete <HiTrash className="ml-2 h-5 w-5" />
                 </Button>
               </div>
             </div>
@@ -118,6 +271,55 @@ export default function PackPage() {
           </div>
         </div>
       )}
+      <Modal
+        dismissible
+        show={addModModalOpen}
+        onClose={() => setAddModModalOpen(false)}
+      >
+        <ModalHeader>Terms of Service</ModalHeader>
+        <ModalBody>
+          <div className="space-y-6">
+            <div className="flex-1">
+              <div className="mb-2 block">
+                <Label htmlFor="base" className="text-lg">
+                  Source
+                </Label>
+              </div>
+              <Select
+                id="source"
+                name="source"
+                required
+                onChange={(e) => handleModSource(e)}
+              >
+                <option value="Modrinth">Modrinth</option>
+                <option value="CurseForge">CurseForge</option>
+              </Select>
+            </div>
+            <div className="flex-1">
+              <div className="mb-2 block">
+                <Label htmlFor="base" className="text-lg">
+                  Link
+                </Label>
+              </div>
+              <TextInput
+                id="base"
+                type="text"
+                sizing="md"
+                name="author"
+                onChange={(e) =>
+                  setModUrl({ ...modUrl, value: e.target.value })
+                }
+                value={modUrl.value}
+                placeholder={modUrl.placeholer}
+                required
+              />
+            </div>
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button onClick={() => addMod()}>Save</Button>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 }
