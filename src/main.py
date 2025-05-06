@@ -3,10 +3,9 @@ from flask import render_template, send_file, abort
 from flaskwebgui import FlaskUI  # import FlaskUI
 import os
 import sys
+from flask_socketio import SocketIO
 
-
-from api import apiPack
-from api import apiPacks
+from api import apiPack, apiPacks, apiDownload
 
 
 def resource_path(relative_path):
@@ -20,10 +19,11 @@ app = Flask(
     static_folder=resource_path("static"),
     template_folder=resource_path("templates"),
 )
-
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 app.register_blueprint(apiPack)
 app.register_blueprint(apiPacks)
+app.register_blueprint(apiDownload)
 
 
 if os.getenv("is_dev") == "True":
@@ -51,9 +51,23 @@ def page_not_found(e):
     return render_template("404.html"), 404
 
 
+@socketio.on("connect")
+def handle_connect():
+    print("Client connected")
+
+
+@socketio.on("disconnect")
+def handle_disconnect():
+    print("Client disconnected")
+
+
 if __name__ == "__main__":
 
     if os.getenv("is_dev") == "True":
-        app.run(host="0.0.0.0", debug=True, use_reloader=True)
+        socketio.run(app, host="0.0.0.0", debug=True, use_reloader=True)
+        # app.run(host="0.0.0.0", debug=True, use_reloader=True)
     else:
-        FlaskUI(app=app, server="flask").run()
+        # FlaskUI(app=app, server="flask").run()
+        FlaskUI(
+            app=app, socketio=socketio, server="flask_socketio", width=800, height=600
+        ).run()

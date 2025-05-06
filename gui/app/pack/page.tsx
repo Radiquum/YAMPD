@@ -1,8 +1,20 @@
 "use client";
 
-import { MOD_ENDPOINT, PACK_ENDPOINT, PACKS_ENDPOINT } from "@/api/ENDPOINTS";
+import {
+  DOWNLOAD_ENDPOINT,
+  MOD_ENDPOINT,
+  PACK_ENDPOINT,
+  PACKS_ENDPOINT,
+} from "@/api/ENDPOINTS";
 import { Pack } from "@/types/pack";
-import { Button, Card, Label, Spinner, TextInput } from "flowbite-react";
+import {
+  Button,
+  Card,
+  Label,
+  Progress,
+  Spinner,
+  TextInput,
+} from "flowbite-react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,14 +24,29 @@ import { HiDownload, HiPlusCircle, HiTrash } from "react-icons/hi";
 import { ModTable } from "../components/ModTable";
 import { toast } from "react-toastify";
 
+import { io } from "socket.io-client";
+const socketURL = process.env.NEXT_PUBLIC_SOCKET_URL
+  ? process.env.NEXT_PUBLIC_SOCKET_URL
+  : undefined;
+const socket = io(socketURL);
+
 export default function PackPage() {
   const [packData, setPackData] = useState<Pack | null>(null);
   const [packDataLoading, setPackDataLoading] = useState(true);
   const router = useRouter();
   const id = useSearchParams().get("id") || "";
 
-  const [addModModalOpen, setAddModModalOpen] = useState(true);
+  const [addModModalOpen, setAddModModalOpen] = useState(false);
   const [modUrl, setModUrl] = useState("");
+
+  const [downloadModalOpen, setdownloadModalOpen] = useState(false);
+  const [downloadProgressFile, setDownloadProgressFile] = useState({
+    filename: "filename",
+    total: 1,
+    current: 1,
+  });
+  const [downloadProgressTotal, setDownloadProgressTotal] = useState(100);
+  const [downloadProgressCurrent, setDownloadProgressCurrent] = useState(100);
 
   async function _getPacksData() {
     const res = await fetch(PACK_ENDPOINT("getPack", id));
@@ -36,6 +63,55 @@ export default function PackPage() {
       router.push("/404");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    function percentage(partialValue: number, totalValue: number) {
+      const flo = (100 * partialValue) / totalValue;
+      return Number(flo.toFixed(2));
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function onDownloadCurrent(data: any) {
+      switch (data.status) {
+        case "pending":
+          const progress = percentage(data.download_bytes, data.total_bytes);
+          setDownloadProgressCurrent(progress);
+          break;
+        case "ok":
+          setDownloadProgressCurrent(0);
+          break;
+        case "error":
+          toast.error(data.message, {
+            autoClose: 2500,
+            closeOnClick: true,
+            draggable: true,
+          });
+          break;
+        default:
+          console.log(`GET UNKNOWN WS STATUS: ${data.status}`);
+          break;
+      }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function onDownloadTotal(data: any) {
+      const progress = percentage(data.current, data.total);
+      setDownloadProgressTotal(progress);
+      setDownloadProgressFile({
+        filename: data.filename,
+        total: data.total,
+        current: data.current,
+      });
+    }
+
+    socket.on("download_current", (data) => onDownloadCurrent(data));
+    socket.on("download_total", (data) => onDownloadTotal(data));
+
+    return () => {
+      socket.off("download_current", (data) => onDownloadCurrent(data));
+      socket.off("download_total", (data) => onDownloadTotal(data));
+    };
   }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -188,6 +264,23 @@ export default function PackPage() {
     _getPacksData();
   }
 
+  async function downloadPack() {
+    if (!packData) return;
+
+    fetch(`${DOWNLOAD_ENDPOINT["downloadPack"]}`, {
+      method: "POST",
+      body: JSON.stringify({
+        pack_id: packData._id,
+      }),
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+    });
+
+    setdownloadModalOpen(true);
+  }
+
   return (
     <div>
       {packDataLoading && (
@@ -236,7 +329,7 @@ export default function PackPage() {
                 <Button onClick={() => setAddModModalOpen(true)}>
                   Add mod <HiPlusCircle className="ml-2 h-5 w-5" />
                 </Button>
-                <Button>
+                <Button onClick={() => downloadPack()}>
                   Download <HiDownload className="ml-2 h-5 w-5" />
                 </Button>
                 <Button color={"red"} onClick={() => deletePack()}>
@@ -291,6 +384,56 @@ export default function PackPage() {
         </ModalBody>
         <ModalFooter>
           <Button onClick={() => addMod()}>Save</Button>
+        </ModalFooter>
+      </Modal>
+      <Modal show={downloadModalOpen}>
+        <ModalHeader>Download progress</ModalHeader>
+        <ModalBody>
+          <div className="mb-4">
+            <Progress
+              progress={downloadProgressTotal}
+              progressLabelPosition="inside"
+              textLabel="Total"
+              textLabelPosition="outside"
+              size="lg"
+              labelProgress
+              labelText
+            />
+            <div className="flex justify-end items-center mb-2">
+              <p>
+                {downloadProgressFile.current} / {downloadProgressFile.total}
+              </p>
+            </div>
+          </div>
+          <div>
+            <Progress
+              progress={downloadProgressCurrent}
+              progressLabelPosition="inside"
+              textLabel={downloadProgressFile.filename}
+              textLabelPosition="outside"
+              size="lg"
+              labelProgress
+              labelText
+            />
+          </div>
+          {downloadProgressFile.current == downloadProgressFile.total ? (
+            <p>
+              Mods downloaded, You can find them in path: packs/{packData?._id}
+              /mods
+            </p>
+          ) : (
+            ""
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            disabled={
+              downloadProgressFile.current != downloadProgressFile.total
+            }
+            onClick={() => setdownloadModalOpen(false)}
+          >
+            Close
+          </Button>
         </ModalFooter>
       </Modal>
     </div>

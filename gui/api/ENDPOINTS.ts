@@ -73,3 +73,8 @@ export const MOD_ENDPOINT = (
   };
   return _endpoints[endpoint];
 };
+
+export const DOWNLOAD_ENDPOINT = {
+  downloadPack: `${API}/download/pack`,
+  downloadMods: `${API}/download/mods`
+}
