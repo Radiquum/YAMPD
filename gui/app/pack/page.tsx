@@ -2,14 +2,7 @@
 
 import { MOD_ENDPOINT, PACK_ENDPOINT, PACKS_ENDPOINT } from "@/api/ENDPOINTS";
 import { Pack } from "@/types/pack";
-import {
-  Button,
-  Card,
-  Label,
-  Select,
-  Spinner,
-  TextInput,
-} from "flowbite-react";
+import { Button, Card, Label, Spinner, TextInput } from "flowbite-react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -26,20 +19,7 @@ export default function PackPage() {
   const id = useSearchParams().get("id") || "";
 
   const [addModModalOpen, setAddModModalOpen] = useState(true);
-  const [modSource, setModSource] = useState<"Modrinth" | "CurseForge">(
-    "Modrinth"
-  );
-  const [modUrl, setModUrl] = useState({
-    placeholer: "https://modrinth.com/mod/{ slug }</version/{ file_id }>",
-    value: "",
-  });
-  // const [modParams, setModParams] = useState<{
-  //   slug: string;
-  //   version: string | null;
-  // }>({
-  //   slug: "",
-  //   version: null,
-  // });
+  const [modUrl, setModUrl] = useState("");
 
   async function _getPacksData() {
     const res = await fetch(PACK_ENDPOINT("getPack", id));
@@ -94,32 +74,11 @@ export default function PackPage() {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleModSource = (e: any) => {
-    switch (e.target.value) {
-      case "Modrinth":
-        setModSource("Modrinth");
-        setModUrl({
-          placeholer: "https://modrinth.com/mod/{ slug }</version/{ file_id }>",
-          value: "",
-        });
-        break;
-      case "CurseForge":
-        setModSource("CurseForge");
-        setModUrl({
-          placeholer:
-            "https://www.curseforge.com/minecraft/mc-mods/{ slug }</files/{ file_id }>",
-          value: "",
-        });
-        break;
-    }
-  };
-
   async function addMod() {
     let slug = null;
     let version = null;
 
-    if (!modUrl.value) {
+    if (!modUrl) {
       toast.error("Mod url is required", {
         autoClose: 2500,
         closeOnClick: true,
@@ -128,9 +87,24 @@ export default function PackPage() {
       return;
     }
 
-    switch (modSource) {
+    let source = null;
+
+    if (modUrl.includes("modrinth.com")) {
+      source = "Modrinth";
+    } else if (modUrl.includes("curseforge.com")) {
+      source = "CurseForge";
+    } else {
+      toast.error("unknown source", {
+        autoClose: 2500,
+        closeOnClick: true,
+        draggable: true,
+      });
+      return;
+    }
+
+    switch (source) {
       case "Modrinth":
-        const _tmp = modUrl.value.split("/mod/");
+        const _tmp = modUrl.split("/mod/");
         if (_tmp.length == 1) {
           toast.error("invalid Modrinth url", {
             autoClose: 2500,
@@ -146,7 +120,7 @@ export default function PackPage() {
         }
         break;
       case "CurseForge":
-        const _tmp3 = modUrl.value.split("/mc-mods/");
+        const _tmp3 = modUrl.split("/mc-mods/");
         if (_tmp3.length == 1) {
           toast.error("invalid CurseForge url", {
             autoClose: 2500,
@@ -161,19 +135,17 @@ export default function PackPage() {
           version = _tmp4[1];
         }
         break;
+      default:
+        toast.error("failed to parse url", {
+          autoClose: 2500,
+          closeOnClick: true,
+          draggable: true,
+        });
+        return;
     }
 
     slug = slug.replace("/", "");
     version = version ? version.replace("/", "") : null;
-
-    // if (packMods.find((elem) => elem.slug == slug)) {
-    //   toast.error(`mod (${slug}) already exists`, {
-    //     autoClose: 2500,
-    //     closeOnClick: true,
-    //     draggable: true,
-    //   });
-    //   return;
-    // }
 
     if (!packData) return;
     const tid = toast.loading(`Adding mod`);
@@ -182,7 +154,7 @@ export default function PackPage() {
       body: JSON.stringify({
         slug,
         version,
-        source: modSource,
+        source,
       }),
       headers: {
         "content-type": "application/json",
@@ -211,7 +183,7 @@ export default function PackPage() {
       closeOnClick: true,
       draggable: true,
     });
-    setModUrl({ ...modUrl, value: "" });
+    // setModUrl({ ...modUrl, value: "" });
 
     _getPacksData();
   }
@@ -274,7 +246,11 @@ export default function PackPage() {
             </div>
           </Card>
           <div className="mt-4">
-            <ModTable mods={packData.mods} updatePack={_getPacksData} packID={id} />
+            <ModTable
+              mods={packData.mods}
+              updatePack={_getPacksData}
+              packID={id}
+            />
           </div>
         </div>
       )}
@@ -283,43 +259,33 @@ export default function PackPage() {
         show={addModModalOpen}
         onClose={() => setAddModModalOpen(false)}
       >
-        <ModalHeader>Terms of Service</ModalHeader>
+        <ModalHeader>Add a mod</ModalHeader>
         <ModalBody>
           <div className="space-y-6">
             <div className="flex-1">
               <div className="mb-2 block">
-                <Label htmlFor="base" className="text-lg">
-                  Source
-                </Label>
-              </div>
-              <Select
-                id="source"
-                name="source"
-                required
-                onChange={(e) => handleModSource(e)}
-              >
-                <option value="Modrinth">Modrinth</option>
-                <option value="CurseForge">CurseForge</option>
-              </Select>
-            </div>
-            <div className="flex-1">
-              <div className="mb-2 block">
-                <Label htmlFor="base" className="text-lg">
+                <Label htmlFor="mod_url" className="text-lg">
                   Link
                 </Label>
               </div>
               <TextInput
-                id="base"
+                id="mod_url"
                 type="text"
                 sizing="md"
-                name="author"
-                onChange={(e) =>
-                  setModUrl({ ...modUrl, value: e.target.value })
-                }
-                value={modUrl.value}
-                placeholder={modUrl.placeholer}
+                name="mod_url"
+                onChange={(e) => setModUrl(e.target.value)}
+                value={modUrl}
                 required
               />
+              <p className="mt-2 text-gray-400">Can be one of:</p>
+              <ul className="text-gray-400 list-disc">
+                <li className="ml-4">
+                  https://modrinth.com/mod/[slug][/version/file_id]
+                </li>
+                <li className="ml-4">
+                  https://www.curseforge.com/minecraft/mc-mods/[slug][/files/file_id]
+                </li>
+              </ul>
             </div>
           </div>
         </ModalBody>
