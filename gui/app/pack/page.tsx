@@ -18,11 +18,9 @@ import { Modal, ModalBody, ModalFooter, ModalHeader } from "flowbite-react";
 import { HiDownload, HiPlusCircle, HiTrash } from "react-icons/hi";
 import { ModTable } from "../components/ModTable";
 import { toast } from "react-toastify";
-import { Mod } from "@/types/mod";
 
 export default function PackPage() {
   const [packData, setPackData] = useState<Pack | null>(null);
-  const [packMods, setPackMods] = useState<Mod[]>([]);
   const [packDataLoading, setPackDataLoading] = useState(true);
   const router = useRouter();
   const id = useSearchParams().get("id") || "";
@@ -43,15 +41,15 @@ export default function PackPage() {
   //   version: null,
   // });
 
+  async function _getPacksData() {
+    const res = await fetch(PACK_ENDPOINT("getPack", id));
+    if (!res.ok) router.push("/404");
+    const data: Pack = await res.json();
+    setPackData(data);
+    setPackDataLoading(false);
+  }
+
   useEffect(() => {
-    async function _getPacksData() {
-      const res = await fetch(PACK_ENDPOINT("getPack", id));
-      if (!res.ok) router.push("/404");
-      const data: Pack = await res.json();
-      setPackData(data);
-      setPackMods(data.mods);
-      setPackDataLoading(false);
-    }
     if (id) {
       _getPacksData();
     } else {
@@ -205,7 +203,6 @@ export default function PackPage() {
       return;
     }
 
-    setPackMods([...packMods, data.mod]);
     toast.update(tid, {
       render: data.message,
       type: "success",
@@ -214,7 +211,9 @@ export default function PackPage() {
       closeOnClick: true,
       draggable: true,
     });
-    setModUrl({ ...modUrl, value: "" })
+    setModUrl({ ...modUrl, value: "" });
+
+    _getPacksData();
   }
 
   return (
@@ -253,7 +252,15 @@ export default function PackPage() {
                   <p className="text-sm text-gray-400">by {packData.author}</p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
+                <div>
+                  <p className="text-lg font-semibold">
+                    {packData.mods.length} mods
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    v{packData.modpackVersion}
+                  </p>
+                </div>
                 <Button onClick={() => setAddModModalOpen(true)}>
                   Add mod <HiPlusCircle className="ml-2 h-5 w-5" />
                 </Button>
@@ -267,7 +274,7 @@ export default function PackPage() {
             </div>
           </Card>
           <div className="mt-4">
-            <ModTable />
+            <ModTable mods={packData.mods} updatePack={_getPacksData} packID={id} />
           </div>
         </div>
       )}

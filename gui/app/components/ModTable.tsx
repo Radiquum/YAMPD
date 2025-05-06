@@ -1,4 +1,7 @@
+import { MOD_ENDPOINT } from "@/api/ENDPOINTS";
+import { Mod } from "@/types/mod";
 import {
+  Button,
   Checkbox,
   Table,
   TableBody,
@@ -7,8 +10,33 @@ import {
   TableHeadCell,
   TableRow,
 } from "flowbite-react";
+import { HiDownload, HiTrash } from "react-icons/hi";
+import { toast } from "react-toastify";
 
-export const ModTable = () => {
+export const ModTable = (props: {
+  mods: Mod[];
+  updatePack: () => void;
+  packID: string;
+}) => {
+  async function deleteMod(slug: string, title: string) {
+    if (!window) return;
+    if (window.confirm(`Delete mod ${title}?`)) {
+      const res = await fetch(MOD_ENDPOINT("deleteMod", props.packID, slug));
+      const data = await res.json();
+
+      if (data.status != "ok") {
+        toast.error(data.message, {
+          autoClose: 2500,
+          closeOnClick: true,
+          draggable: true,
+        });
+        return;
+      }
+
+      props.updatePack();
+    }
+  }
+
   return (
     <div className="overflow-x-auto">
       <Table hoverable>
@@ -17,395 +45,66 @@ export const ModTable = () => {
             <TableHeadCell className="p-4">
               <Checkbox />
             </TableHeadCell>
-            <TableHeadCell>Product name</TableHeadCell>
-            <TableHeadCell>Color</TableHeadCell>
-            <TableHeadCell>Category</TableHeadCell>
-            <TableHeadCell>Price</TableHeadCell>
+            <TableHeadCell>Icon</TableHeadCell>
+            <TableHeadCell>Title</TableHeadCell>
+            <TableHeadCell>Version</TableHeadCell>
+            <TableHeadCell>Developer</TableHeadCell>
+            <TableHeadCell>Source</TableHeadCell>
+            <TableHeadCell>Source URL</TableHeadCell>
             <TableHeadCell>
-              <span className="sr-only">Edit</span>
+              <span className="sr-only">Actions</span>
             </TableHeadCell>
           </TableRow>
         </TableHead>
         <TableBody className="divide-y">
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Apple MacBook Pro 17
-            </TableCell>
-            <TableCell>Sliver</TableCell>
-            <TableCell>Laptop</TableCell>
-            <TableCell>$2999</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Microsoft Surface Pro
-            </TableCell>
-            <TableCell>White</TableCell>
-            <TableCell>Laptop PC</TableCell>
-            <TableCell>$1999</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
-          </TableRow>
-          <TableRow className="bg-white dark:border-gray-700 dark:bg-gray-800">
-            <TableCell className="p-4">
-              <Checkbox />
-            </TableCell>
-            <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-              Magic Mouse 2
-            </TableCell>
-            <TableCell>Black</TableCell>
-            <TableCell>Accessories</TableCell>
-            <TableCell>$99</TableCell>
-            <TableCell>
-              <a
-                href="#"
-                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-              >
-                Edit
-              </a>
-            </TableCell>
+          {props.mods &&
+            props.mods.length > 0 &&
+            props.mods.map((mod) => {
+              return (
+                <TableRow
+                  key={`mod-${mod.slug}`}
+                  className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                >
+                  <TableCell className="p-4">
+                    <Checkbox />
+                  </TableCell>
+                  <TableCell>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img alt="" src={mod.icon} className="w-8 h-8 rounded-lg" />
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                    {mod.title}
+                  </TableCell>
+                  <TableCell>{mod.file.version}</TableCell>
+                  <TableCell>{mod.developers.join(", ")}</TableCell>
+                  <TableCell>{mod.source}</TableCell>
+                  <TableCell>{mod.url}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button size="sm">
+                        Download <HiDownload className="ml-2 h-4 w-4" />
+                      </Button>
+                      <Button
+                        color={"red"}
+                        size="sm"
+                        onClick={() => deleteMod(mod.slug, mod.title)}
+                      >
+                        Delete <HiTrash className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          <TableRow className="bg-white dark:bg-[#374151] hover:bg-white! hover:dark:bg-[#374151]! dark:border-gray-700">
+            <TableCell className="p-4"></TableCell>
+            <TableCell></TableCell>
+            <TableCell></TableCell>
+            <TableCell></TableCell>
+            <TableCell></TableCell>
+            <TableCell></TableCell>
+            <TableCell></TableCell>
+            <TableCell></TableCell>
           </TableRow>
         </TableBody>
       </Table>
