@@ -7,7 +7,7 @@ from PIL import Image
 from io import BytesIO
 import base64
 import json
-from .source import Modrinth
+from .source import Modrinth, CurseForge
 
 
 @apiPack.route("/<id>", methods=["GET"])
@@ -89,6 +89,8 @@ def addMod(id):
 
     if source == "Modrinth":
         mod = Modrinth.getModrinthMod(slug, version, mod_loader, game_version)
+    elif source == "CurseForge":
+        mod = CurseForge.getCurseForgeMod(slug, version, mod_loader, game_version)
 
     if mod.get("status") != "ok":
         return jsonify({"status": "error", "message": mod.get("message")})
