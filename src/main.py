@@ -4,6 +4,7 @@ from flaskwebgui import FlaskUI  # import FlaskUI
 import os
 import sys
 from flask_socketio import SocketIO
+from engineio.async_drivers import threading
 
 from api import apiPack, apiPacks, apiDownload
 
@@ -19,7 +20,7 @@ app = Flask(
     static_folder=resource_path("static"),
     template_folder=resource_path("templates"),
 )
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
 
 app.register_blueprint(apiPack)
 app.register_blueprint(apiPacks)
