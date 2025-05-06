@@ -15,6 +15,7 @@ type _PACKS_ENDPOINT = {
 type _MOD_ENDPOINT = {
   addMod: string;
   deleteMod: string;
+  deleteModBulk: string;
 };
 
 export const PACK_ENDPOINT = (endpoint: keyof _PACK_ENDPOINT, id: string) => {
@@ -68,6 +69,7 @@ export const MOD_ENDPOINT = (
   const _endpoints = {
     addMod: `${API}/pack/${id}/mod/add`,
     deleteMod: `${API}/pack/${id}/mod/${slug}/delete`,
+    deleteModBulk: `${API}/pack/${id}/mods/delete`,
   };
   return _endpoints[endpoint];
 };

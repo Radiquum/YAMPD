@@ -134,3 +134,36 @@ def deleteMod(id, slug):
             "message": f"mod {slug} has been removed",
         }
     )
+
+
+@apiPack.route("/<id>/mods/delete", methods=["POST"])
+def deleteModBulk(id):
+    pack = {}
+    slugs = request.json
+
+    with open(f"{PACKS_FOLDER}/{id}/packfile.json") as fp:
+        pack = json.load(fp)
+        fp.close()
+
+    for slug in slugs:
+        for mod in pack.get("mods"):
+            if mod.get("slug") == slug:
+                pack["mods"].remove(mod)
+                pack["modpackVersion"] += 1
+                if os.path.exists(
+                    f"{PACKS_FOLDER}/{id}/mods/{mod.get('file').get('filename')}"
+                ):
+                    os.remove(
+                        f"{PACKS_FOLDER}/{id}/mods/{mod.get('file').get('filename')}"
+                    )
+
+    with open(f"{PACKS_FOLDER}/{id}/packfile.json", mode="w", encoding="utf-8") as fp:
+        json.dump(pack, fp)
+        fp.close()
+
+    return jsonify(
+        {
+            "status": "ok",
+            "message": f"mods has been removed",
+        }
+    )

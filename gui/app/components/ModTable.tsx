@@ -10,6 +10,7 @@ import {
   TableHeadCell,
   TableRow,
 } from "flowbite-react";
+import { useState } from "react";
 import { HiDownload, HiTrash } from "react-icons/hi";
 import { toast } from "react-toastify";
 
@@ -18,6 +19,8 @@ export const ModTable = (props: {
   updatePack: () => void;
   packID: string;
 }) => {
+  const [selectedMods, setSelectedMods] = useState<string[]>([]);
+
   async function deleteMod(slug: string, title: string) {
     if (!window) return;
     if (window.confirm(`Delete mod ${title}?`)) {
@@ -37,13 +40,54 @@ export const ModTable = (props: {
     }
   }
 
+  function selectAll() {
+    const deselect = selectedMods.length == props.mods.length;
+    console.log(selectedMods.length, props.mods.length, deselect);
+    if (deselect) {
+      setSelectedMods([]);
+      return;
+    }
+    props.mods.forEach((item) => {
+      if (!selectedMods.includes(item.slug)) {
+        setSelectedMods((state) => [item.slug, ...state]);
+      }
+    });
+  }
+
+  function handleCheckbox(slug: string) {
+    if (!selectedMods.includes(slug)) {
+      setSelectedMods((state) => [slug, ...state]);
+    } else {
+      const newArray = selectedMods.map((i) => i);
+      const idx = newArray.findIndex((item) => item == slug);
+      newArray.splice(idx, 1);
+      setSelectedMods(newArray);
+    }
+  }
+
+  async function deleteSelectedMods() {
+    await fetch(MOD_ENDPOINT("deleteModBulk", props.packID), {
+      method: "POST",
+      body: JSON.stringify(selectedMods),
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+    });
+    setSelectedMods([]);
+    props.updatePack();
+  }
+
   return (
     <div className="overflow-x-auto">
       <Table hoverable>
         <TableHead>
           <TableRow>
             <TableHeadCell className="p-4">
-              <Checkbox />
+              <Checkbox
+                checked={selectedMods.length == props.mods.length}
+                onChange={() => selectAll()}
+              />
             </TableHeadCell>
             <TableHeadCell>Icon</TableHeadCell>
             <TableHeadCell>Title</TableHeadCell>
@@ -66,7 +110,12 @@ export const ModTable = (props: {
                   className="bg-white dark:border-gray-700 dark:bg-gray-800"
                 >
                   <TableCell className="p-4">
-                    <Checkbox />
+                    <Checkbox
+                      checked={selectedMods.includes(mod.slug)}
+                      onChange={() => {
+                        handleCheckbox(mod.slug);
+                      }}
+                    />
                   </TableCell>
                   <TableCell>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -104,7 +153,16 @@ export const ModTable = (props: {
             <TableCell></TableCell>
             <TableCell></TableCell>
             <TableCell></TableCell>
-            <TableCell></TableCell>
+            <TableCell>
+              <Button
+                color={"red"}
+                size="sm"
+                disabled={selectedMods.length == 0}
+                onClick={() => deleteSelectedMods()}
+              >
+                Delete Selected <HiTrash className="ml-2 h-4 w-4" />
+              </Button>
+            </TableCell>
           </TableRow>
         </TableBody>
       </Table>
