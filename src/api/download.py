@@ -108,3 +108,60 @@ def downloadPack():
             "message": f"download of {pack_id} with {total} mods finished",
         },
     )
+
+
+@apiDownload.route("/mods", methods=["POST"])
+def downloadMods():
+    pack = {}
+    pack_id = request.json.get("pack_id")
+    mods_slugs = request.json.get("mods")
+
+    with open(f"{PACKS_FOLDER}/{pack_id}/packfile.json") as fp:
+        pack = json.load(fp)
+        fp.close()
+
+    mods = pack.get("mods", [])
+    total = len(mods_slugs)
+
+    os.makedirs(f"{PACKS_FOLDER}/{pack_id}/mods", exist_ok=True)
+
+    for i, slug in enumerate(mods_slugs):
+        for mod in mods:
+            if mod.get("slug") == slug:
+                emit(
+                    "download_total",
+                    {
+                        "status": "ok",
+                        "total": total,
+                        "current": i,
+                        "title": mod.get("title"),
+                        "filename": mod.get("file").get("filename"),
+                    },
+                    namespace="/",
+                    broadcast=True,
+                )
+                download(
+                    f"{PACKS_FOLDER}/{pack_id}/mods",
+                    mod.get("file").get("url"),
+                    mod.get("file").get("filename"),
+                    mod.get("file").get("size"),
+                )
+
+    emit(
+        "download_total",
+        {
+            "status": "ok",
+            "total": total,
+            "current": total,
+            "title": "",
+            "filename": "",
+        },
+        namespace="/",
+        broadcast=True,
+    )
+    return jsonify(
+        {
+            "status": "ok",
+            "message": f"download of {pack_id} with {total} mods finished",
+        },
+    )

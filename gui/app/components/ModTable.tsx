@@ -18,6 +18,7 @@ export const ModTable = (props: {
   mods: Mod[];
   updatePack: () => void;
   packID: string;
+  downloadMods: (mods: string[]) => void;
 }) => {
   const [selectedMods, setSelectedMods] = useState<string[]>([]);
 
@@ -130,7 +131,10 @@ export const ModTable = (props: {
                   <TableCell>{mod.url}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button size="sm">
+                      <Button
+                        size="sm"
+                        onClick={() => props.downloadMods([mod.slug])}
+                      >
                         Download <HiDownload className="ml-2 h-4 w-4" />
                       </Button>
                       <Button
@@ -154,14 +158,23 @@ export const ModTable = (props: {
             <TableCell></TableCell>
             <TableCell></TableCell>
             <TableCell>
-              <Button
-                color={"red"}
-                size="sm"
-                disabled={selectedMods.length == 0}
-                onClick={() => deleteSelectedMods()}
-              >
-                Delete Selected <HiTrash className="ml-2 h-4 w-4" />
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  disabled={selectedMods.length == 0}
+                  onClick={() => props.downloadMods(selectedMods)}
+                >
+                  Download Selected <HiDownload className="ml-2 h-4 w-4" />
+                </Button>
+                <Button
+                  color={"red"}
+                  size="sm"
+                  disabled={selectedMods.length == 0}
+                  onClick={() => deleteSelectedMods()}
+                >
+                  Delete Selected <HiTrash className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             </TableCell>
           </TableRow>
         </TableBody>

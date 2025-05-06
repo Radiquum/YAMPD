@@ -281,6 +281,24 @@ export default function PackPage() {
     setdownloadModalOpen(true);
   }
 
+  async function downloadMods(mods: string[]) {
+    if (!packData) return;
+
+    fetch(`${DOWNLOAD_ENDPOINT["downloadMods"]}`, {
+      method: "POST",
+      body: JSON.stringify({
+        pack_id: packData._id,
+        mods: mods,
+      }),
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+    });
+
+    setdownloadModalOpen(true);
+  }
+
   return (
     <div>
       {packDataLoading && (
@@ -342,6 +360,7 @@ export default function PackPage() {
             <ModTable
               mods={packData.mods}
               updatePack={_getPacksData}
+              downloadMods={downloadMods}
               packID={id}
             />
           </div>
@@ -386,7 +405,15 @@ export default function PackPage() {
           <Button onClick={() => addMod()}>Save</Button>
         </ModalFooter>
       </Modal>
-      <Modal show={downloadModalOpen}>
+      <Modal
+        show={downloadModalOpen}
+        dismissible={downloadProgressFile.current == downloadProgressFile.total}
+        onClose={() => {
+          if (downloadProgressFile.current == downloadProgressFile.total) {
+            setdownloadModalOpen(false);
+          }
+        }}
+      >
         <ModalHeader>Download progress</ModalHeader>
         <ModalBody>
           <div className="mb-4">
