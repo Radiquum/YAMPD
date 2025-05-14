@@ -77,6 +77,13 @@ def getCurseForgeMod(slug, version, mod_loader, game_version):
         hashes[HASHALGO_ENUM[hash.get("algo")]] = hash.get("value")
 
     dependencies = []
+    for dep in selected_version.get("dependencies"):
+        depDescR = requests.get(f"https://api.curseforge.com/v1/mods/{dep.get('modId')}/", headers=headers)
+        if depDescR.status_code != 200:
+            continue
+        depDesc: dict = depDescR.json()
+        depMod = getCurseForgeMod(depDesc.get("data").get("slug"), None, mod_loader, game_version)
+        dependencies.append(depMod.get("mod"))
 
     return {
         "status": "ok",
