@@ -31,7 +31,7 @@ def getPacks() -> list[Pack]:
 
 def createPack(
     title: str, author: str, game_version: str, mod_loader: str
-) -> Pack | bool:
+) -> tuple[Pack, bool]:
     """
     Creates a new pack.
     If pack exists returns tuple[Pack, True], if pack was created returns tuple[Pack, False]

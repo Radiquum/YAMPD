@@ -1,26 +1,19 @@
 import os
 import re
 from . import apiPack
-from flask import request, jsonify, send_file, redirect, url_for, abort
+from flask import request, jsonify, send_file, redirect, url_for
 from config import PACKS_FOLDER, IMG_ALLOWED_MIME
 from PIL import Image
 from io import BytesIO
 import base64
-import json
-from .source import Modrinth, CurseForge
+from shared.pack import getPack, addMod, deleteMod
 
 
 @apiPack.route("/<id>", methods=["GET"])
-def getPack(id):
-    if not os.path.exists(f"{PACKS_FOLDER}/{id}/packfile.json"):
+def getPackEndpoint(id):
+    pack = getPack(id)
+    if pack is None:
         return jsonify({"status": "error", "message": "pack not found"}), 404
-
-    pack = {}
-    with open(f"{PACKS_FOLDER}/{id}/packfile.json") as fp:
-        pack = json.load(fp)
-        pack["_id"] = id
-        fp.close()
-
     return jsonify(pack)
 
 
@@ -63,73 +56,35 @@ def editPackImage(id):
 
 
 @apiPack.route("/<id>/mod/add", methods=["POST"])
-def addMod(id):
+def addModEndpoint(id):
     source = request.json.get("source", None)
     slug = request.json.get("slug", None)
     version = request.json.get("version", None)
-    pack = {}
-    mod = {}
+    mod = addMod(id, source, slug, version)
 
-    if not os.path.exists(f"{PACKS_FOLDER}/{id}/packfile.json"):
+    if mod == "err_404":
         return jsonify({"status": "error", "message": "pack not found"})
-    with open(f"{PACKS_FOLDER}/{id}/packfile.json") as fp:
-        pack = json.load(fp)
-        fp.close()
-    mod_loader = pack.get("modloader").lower()
-    game_version = pack.get("version")
-
-    if not source:
+    elif mod == "err_source":
         return jsonify({"status": "error", "message": "mod source is required"})
-    if not slug:
+    elif mod == "err_slug":
         return jsonify({"status": "error", "message": "mod slug is required"})
-
-    for mod in pack["mods"]:
-        if mod.get("slug") == slug:
-            return jsonify({"status": "error", "message": "mod already exists"})
-
-    if source == "Modrinth":
-        mod = Modrinth.getModrinthMod(slug, version, mod_loader, game_version)
-    elif source == "CurseForge":
-        mod = CurseForge.getCurseForgeMod(slug, version, mod_loader, game_version)
-
-    if mod.get("status") != "ok":
-        return jsonify({"status": "error", "message": mod.get("message")})
-
-    pack["modpackVersion"] += 1
-    pack["mods"].append(mod.get("mod"))
-    with open(f"{PACKS_FOLDER}/{id}/packfile.json", mode="w", encoding="utf-8") as fp:
-        json.dump(pack, fp)
-        fp.close()
+    elif mod == "err_exists":
+        return jsonify({"status": "error", "message": "mod already exists"})
+    elif isinstance(mod, str):
+        return jsonify({"status": "error", "message": mod})
 
     return jsonify(
         {
             "status": "ok",
-            "message": f"mod {mod.get("mod").get('title')} ({slug}) has been added",
-            "mod": mod.get("mod"),
+            "message": f"mod {mod.get("title")} ({slug}) has been added",
+            "mod": mod,
         }
     )
 
 
 @apiPack.route("/<id>/mod/<slug>/delete", methods=["GET"])
-def deleteMod(id, slug):
-    pack = {}
-    with open(f"{PACKS_FOLDER}/{id}/packfile.json") as fp:
-        pack = json.load(fp)
-        fp.close()
-
-    for mod in pack.get("mods"):
-        if mod.get("slug") == slug:
-            pack["mods"].remove(mod)
-            pack["modpackVersion"] += 1
-            if os.path.exists(
-                f"{PACKS_FOLDER}/{id}/mods/{mod.get('file').get('filename')}"
-            ):
-                os.remove(f"{PACKS_FOLDER}/{id}/mods/{mod.get('file').get('filename')}")
-
-    with open(f"{PACKS_FOLDER}/{id}/packfile.json", mode="w", encoding="utf-8") as fp:
-        json.dump(pack, fp)
-        fp.close()
-
+def deleteModEndpoint(id, slug):
+    deleteMod(id, slug)
     return jsonify(
         {
             "status": "ok",
@@ -138,34 +93,34 @@ def deleteMod(id, slug):
     )
 
 
-@apiPack.route("/<id>/mods/delete", methods=["POST"])
-def deleteModBulk(id):
-    pack = {}
-    slugs = request.json
+# @apiPack.route("/<id>/mods/delete", methods=["POST"])
+# def deleteModBulk(id):
+#     pack = {}
+#     slugs = request.json
 
-    with open(f"{PACKS_FOLDER}/{id}/packfile.json") as fp:
-        pack = json.load(fp)
-        fp.close()
+#     with open(f"{PACKS_FOLDER}/{id}/packfile.json") as fp:
+#         pack = json.load(fp)
+#         fp.close()
 
-    for slug in slugs:
-        for mod in pack.get("mods"):
-            if mod.get("slug") == slug:
-                pack["mods"].remove(mod)
-                pack["modpackVersion"] += 1
-                if os.path.exists(
-                    f"{PACKS_FOLDER}/{id}/mods/{mod.get('file').get('filename')}"
-                ):
-                    os.remove(
-                        f"{PACKS_FOLDER}/{id}/mods/{mod.get('file').get('filename')}"
-                    )
+#     for slug in slugs:
+#         for mod in pack.get("mods"):
+#             if mod.get("slug") == slug:
+#                 pack["mods"].remove(mod)
+#                 pack["modpackVersion"] += 1
+#                 if os.path.exists(
+#                     f"{PACKS_FOLDER}/{id}/mods/{mod.get('file').get('filename')}"
+#                 ):
+#                     os.remove(
+#                         f"{PACKS_FOLDER}/{id}/mods/{mod.get('file').get('filename')}"
+#                     )
 
-    with open(f"{PACKS_FOLDER}/{id}/packfile.json", mode="w", encoding="utf-8") as fp:
-        json.dump(pack, fp)
-        fp.close()
+#     with open(f"{PACKS_FOLDER}/{id}/packfile.json", mode="w", encoding="utf-8") as fp:
+#         json.dump(pack, fp)
+#         fp.close()
 
-    return jsonify(
-        {
-            "status": "ok",
-            "message": f"mods has been removed",
-        }
-    )
+#     return jsonify(
+#         {
+#             "status": "ok",
+#             "message": f"mods has been removed",
+#         }
+#     )
