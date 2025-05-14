@@ -1,6 +1,6 @@
 export type ModFile = {
     "version": string,
-    "hashes": unknown,
+    "hashes": Record<string, string>,
     "url": string,
     "filename": string,
     "size": number,

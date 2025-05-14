@@ -10,6 +10,10 @@ def getModrinthMod(slug, version, mod_loader, game_version):
         return {
             "status": "error",
             "message": f"failed to fetch modrinth description: {descR.status_code}",
+            "slug": slug,
+            "version": version,
+            "mod_loader": mod_loader,
+            "game_version": game_version
         }
 
     versR = requests.get(
@@ -21,6 +25,10 @@ def getModrinthMod(slug, version, mod_loader, game_version):
         return {
             "status": "error",
             "message": f"failed to fetch modrinth mod versions: {versR.status_code}",
+            "slug": slug,
+            "version": version,
+            "mod_loader": mod_loader,
+            "game_version": game_version
         }
 
     devsR = requests.get(
@@ -32,6 +40,10 @@ def getModrinthMod(slug, version, mod_loader, game_version):
         return {
             "status": "error",
             "message": f"failed to fetch modrinth mod developers: {devsR.status_code}",
+            "slug": slug,
+            "version": version,
+            "mod_loader": mod_loader,
+            "game_version": game_version
         }
 
     desc: dict = descR.json()
@@ -42,6 +54,10 @@ def getModrinthMod(slug, version, mod_loader, game_version):
         return {
             "status": "error",
             "message": f"mod is not compatible with this game version or mod loader",
+            "slug": slug,
+            "version": version,
+            "mod_loader": mod_loader,
+            "game_version": game_version
         }
 
     selected_version = vers[0]
@@ -61,6 +77,10 @@ def getModrinthMod(slug, version, mod_loader, game_version):
         return {
             "status": "error",
             "message": f"failed to get primary mod file",
+            "slug": slug,
+            "version": version,
+            "mod_loader": mod_loader,
+            "game_version": game_version
         }
 
     developers = []
@@ -74,10 +94,20 @@ def getModrinthMod(slug, version, mod_loader, game_version):
     if desc.get("server_side") in ["optional", "required"]:
         isServer = True
 
+    dependencies = []
+    for dep in selected_version.get("dependencies"):
+        depDescR = requests.get(f"https://api.modrinth.com/v2/project/{dep.get('project_id')}", headers=headers)
+        if depDescR.status_code != 200:
+            continue
+        depDesc: dict = depDescR.json()
+        depMod = getModrinthMod(depDesc.get("slug"), None, mod_loader, game_version)
+        dependencies.append(depMod.get("mod"))
+
     return {
         "status": "ok",
         "mod": {
             "slug": slug,
+            "project_id": desc.get("id"),
             "icon": desc.get("icon_url"),
             "title": desc.get("title"),
             "developers": developers,
@@ -87,6 +117,7 @@ def getModrinthMod(slug, version, mod_loader, game_version):
                 "client": isClient,
                 "server": isServer,
             },
+            "dependencies": dependencies,
             "file": {
                 "version": selected_version.get("version_number"),
                 "hashes": primary_file.get("hashes"),

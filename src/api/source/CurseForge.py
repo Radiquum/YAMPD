@@ -16,6 +16,10 @@ def getCurseForgeMod(slug, version, mod_loader, game_version):
         return {
             "status": "error",
             "message": f"failed to fetch curseforge mod: {metaR.status_code}",
+            "slug": slug,
+            "version": version,
+            "mod_loader": mod_loader,
+            "game_version": game_version
         }
 
     meta: dict = metaR.json()
@@ -42,6 +46,10 @@ def getCurseForgeMod(slug, version, mod_loader, game_version):
         return {
             "status": "error",
             "message": f"failed to fetch curseforge mod versions: {versR.status_code}",
+            "slug": slug,
+            "version": version,
+            "mod_loader": mod_loader,
+            "game_version": game_version
         }
 
     vers: dict = versR.json()
@@ -49,6 +57,10 @@ def getCurseForgeMod(slug, version, mod_loader, game_version):
         return {
             "status": "error",
             "message": f"mod is not compatible with this game version or mod loader",
+            "slug": slug,
+            "version": version,
+            "mod_loader": mod_loader,
+            "game_version": game_version
         }
 
     if version:
@@ -64,10 +76,13 @@ def getCurseForgeMod(slug, version, mod_loader, game_version):
     for hash in selected_version.get("hashes"):
         hashes[HASHALGO_ENUM[hash.get("algo")]] = hash.get("value")
 
+    dependencies = []
+
     return {
         "status": "ok",
         "mod": {
             "slug": slug,
+            "project_id": meta.get("id"),
             "icon": meta.get("logo").get("url"),
             "title": meta.get("name"),
             "developers": developers,
@@ -77,6 +92,7 @@ def getCurseForgeMod(slug, version, mod_loader, game_version):
                 "client": True,
                 "server": True,
             },
+            "dependencies": dependencies,
             "file": {
                 "version": selected_version.get("id"),
                 "hashes": hashes,
