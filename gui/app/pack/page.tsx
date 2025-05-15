@@ -52,8 +52,10 @@ export default function PackPage() {
     const res = await fetch(PACK_ENDPOINT("getPack", id));
     if (!res.ok) router.push("/404");
     const data: Pack = await res.json();
-    setPackData(data);
-    setPackDataLoading(false);
+    if (data._id) {
+      setPackData(data);
+      setPackDataLoading(false);
+    }
   }
 
   useEffect(() => {

@@ -1,63 +1,15 @@
 import os
 from . import apiDownload
-from flask import request, jsonify, send_file, redirect, url_for, abort
+from flask import request, jsonify
 from config import PACKS_FOLDER
 import json
 from flask_socketio import emit
-import requests
 
-
-def download(path, url, name, total):
-    r = requests.get(url, stream=True)
-    if r.status_code != 200:
-        emit(
-            "download_current",
-            {
-                "status": "error",
-                "message": f"Got a HTTP ERROR {r.status_code} while downloading {name}",
-            },
-        )
-        return {
-            "status": "error",
-            "message": f"Got a HTTP ERROR {r.status_code} while downloading {name}",
-        }
-    downloaded = 0
-    if os.path.exists(f"{path}/{name}"):
-        emit(
-            "download_current",
-            {"status": "ok", "message": f"{name} already downloaded"},
-            namespace="/",
-            broadcast=True,
-        )
-        return {"status": "ok", "message": f"{name} already downloaded"}
-    with open(f"{path}/{name}", "wb") as fp:
-        for data in r.iter_content(chunk_size=1024):
-            size = fp.write(data)
-            downloaded += size
-            emit(
-                "download_current",
-                {
-                    "status": "pending",
-                    "total_bytes": total,
-                    "download_bytes": downloaded,
-                },
-                namespace="/",
-                broadcast=True,
-            )
-    emit(
-        "download_current",
-        {"status": "ok", "message": f"{name} downloaded"},
-        namespace="/",
-        broadcast=True,
-    )
-    return {
-        "status": "ok",
-        "message": f"{name} downloaded",
-    }
+from shared.download import download
 
 
 @apiDownload.route("/pack", methods=["POST"])
-def downloadPack():
+def downloadPackEndpoint():
     pack = {}
     pack_id = request.json.get("pack_id")
 
@@ -66,11 +18,33 @@ def downloadPack():
         fp.close()
 
     mods = pack.get("mods", [])
-    total = len(mods)
+    queue = []
+    for mod in mods:
+        queue.append(
+            {
+                "slug": mod.get("slug"),
+                "title": mod.get("file").get("title"),
+                "url": mod.get("file").get("url"),
+                "filename": mod.get("file").get("filename"),
+                "size": mod.get("file").get("size"),
+            }
+        )
+        for dep in mod.get("dependencies"):
+            queue.append(
+                {
+                    "slug": dep.get("slug"),
+                    "title": dep.get("file").get("title"),
+                    "url": dep.get("file").get("url"),
+                    "filename": dep.get("file").get("filename"),
+                    "size": dep.get("file").get("size"),
+                }
+            )
+    queue = list({mod["slug"]: mod for mod in queue}.values())
+    total = len(queue)
 
     os.makedirs(f"{PACKS_FOLDER}/{pack_id}/mods", exist_ok=True)
 
-    for i, mod in enumerate(mods):
+    for i, mod in enumerate(queue):
         emit(
             "download_total",
             {
@@ -78,17 +52,37 @@ def downloadPack():
                 "total": total,
                 "current": i,
                 "title": mod.get("title"),
-                "filename": mod.get("file").get("filename"),
+                "filename": mod.get("filename"),
             },
             namespace="/",
             broadcast=True,
         )
-        download(
+        status, message = download(
             f"{PACKS_FOLDER}/{pack_id}/mods",
-            mod.get("file").get("url"),
-            mod.get("file").get("filename"),
-            mod.get("file").get("size"),
+            mod.get("url"),
+            mod.get("filename"),
+            mod.get("size"),
         )
+        if status is False:
+            emit(
+                "download_current",
+                {
+                    "status": "error",
+                    "message": message,
+                },
+                namespace="/",
+                broadcast=True,
+            )
+        else:
+            emit(
+                "download_current",
+                {
+                    "status": "ok",
+                    "message": mod.get("filename"),
+                },
+                namespace="/",
+                broadcast=True,
+            )
 
     emit(
         "download_total",
@@ -111,7 +105,7 @@ def downloadPack():
 
 
 @apiDownload.route("/mods", methods=["POST"])
-def downloadMods():
+def downloadModsEndpoint():
     pack = {}
     pack_id = request.json.get("pack_id")
     mods_slugs = request.json.get("mods")
@@ -121,31 +115,73 @@ def downloadMods():
         fp.close()
 
     mods = pack.get("mods", [])
-    total = len(mods_slugs)
+    queue = []
+    for slug in mods_slugs:
+        for mod in mods:
+            if mod.get("slug") == slug:
+                queue.append(
+                    {
+                        "slug": mod.get("slug"),
+                        "title": mod.get("file").get("title"),
+                        "url": mod.get("file").get("url"),
+                        "filename": mod.get("file").get("filename"),
+                        "size": mod.get("file").get("size"),
+                    }
+                )
+                for dep in mod.get("dependencies"):
+                    queue.append(
+                        {
+                            "slug": dep.get("slug"),
+                            "title": dep.get("file").get("title"),
+                            "url": dep.get("file").get("url"),
+                            "filename": dep.get("file").get("filename"),
+                            "size": dep.get("file").get("size"),
+                        }
+                    )
+    queue = list({mod["slug"]: mod for mod in queue}.values())
+    total = len(queue)
 
     os.makedirs(f"{PACKS_FOLDER}/{pack_id}/mods", exist_ok=True)
 
-    for i, slug in enumerate(mods_slugs):
-        for mod in mods:
-            if mod.get("slug") == slug:
-                emit(
-                    "download_total",
-                    {
-                        "status": "ok",
-                        "total": total,
-                        "current": i,
-                        "title": mod.get("title"),
-                        "filename": mod.get("file").get("filename"),
-                    },
-                    namespace="/",
-                    broadcast=True,
-                )
-                download(
-                    f"{PACKS_FOLDER}/{pack_id}/mods",
-                    mod.get("file").get("url"),
-                    mod.get("file").get("filename"),
-                    mod.get("file").get("size"),
-                )
+    for i, mod in enumerate(queue):
+        emit(
+            "download_total",
+            {
+                "status": "ok",
+                "total": total,
+                "current": i,
+                "title": mod.get("title"),
+                "filename": mod.get("filename"),
+            },
+            namespace="/",
+            broadcast=True,
+        )
+        status, message = download(
+            f"{PACKS_FOLDER}/{pack_id}/mods",
+            mod.get("url"),
+            mod.get("filename"),
+            mod.get("size"),
+        )
+        if status is False:
+            emit(
+                "download_current",
+                {
+                    "status": "error",
+                    "message": message,
+                },
+                namespace="/",
+                broadcast=True,
+            )
+        else:
+            emit(
+                "download_current",
+                {
+                    "status": "ok",
+                    "message": mod.get("filename"),
+                },
+                namespace="/",
+                broadcast=True,
+            )
 
     emit(
         "download_total",
@@ -162,6 +198,6 @@ def downloadMods():
     return jsonify(
         {
             "status": "ok",
-            "message": f"download of {pack_id} with {total} mods finished",
+            "message": f"download of {total} mods finished",
         },
     )

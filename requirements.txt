@@ -3,3 +3,4 @@ flaskwebgui
 requests
 Pillow
 flask-socketio
+tqdm
