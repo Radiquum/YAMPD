@@ -4,3 +4,5 @@ requests
 Pillow
 flask-socketio
 tqdm
+rich
+beaupy
