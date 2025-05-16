@@ -19,8 +19,29 @@ parser.add_argument(
     default=False,
 )
 parser.add_argument(
-    "--exe", help="create an executable file", action="store_true", default=False
+    "--exe", help="build an executable files", action="store_true", default=False
 )
+parser.add_argument(
+    "--no-gui", help="ignore the GUI build", action="store_true", default=False
+)
+parser.add_argument(
+    "--no-cli", help="ignore the CLI build", action="store_true", default=False
+)
+
+
+def clearCache():
+    if os.path.exists(f"{OUT_DIR}/__pycache__"):
+        shutil.rmtree(f"{OUT_DIR}/__pycache__")
+    if os.path.exists(f"{OUT_DIR}/api/__pycache__"):
+        shutil.rmtree(f"{OUT_DIR}/api/__pycache__")
+    if os.path.exists(f"{OUT_DIR}/api/source/__pycache__"):
+        shutil.rmtree(f"{OUT_DIR}/api/source/__pycache__")
+    if os.path.exists(f"{OUT_DIR}/cli/__pycache__"):
+        shutil.rmtree(f"{OUT_DIR}/cli/__pycache__")
+    if os.path.exists(f"{OUT_DIR}/shared/__pycache__"):
+        shutil.rmtree(f"{OUT_DIR}/shared/__pycache__")
+    if os.path.exists(f"{OUT_DIR}/type/__pycache__"):
+        shutil.rmtree(f"{OUT_DIR}/type/__pycache__")
 
 
 if __name__ == "__main__":
@@ -75,8 +96,9 @@ if __name__ == "__main__":
         f"Copied requirements.txt: './requirements.txt' -> '{OUT_DIR}/requirements.txt'"
     )
     shutil.copyfile(f"./requirements.txt", f"{OUT_DIR}/requirements.txt")
+    clearCache()
 
-    if args.exe:
+    if args.exe and not args.no_gui:
         build = subprocess.call(
             [
                 "pyinstaller",
@@ -106,8 +128,34 @@ if __name__ == "__main__":
         shutil.rmtree(f"{OUT_DIR}/dist")
         shutil.rmtree(f"{OUT_DIR}/build")
         os.remove(f"{OUT_DIR}/main.spec")
+        clearCache()
 
-    if os.path.exists(f"{OUT_DIR}/__pycache__") and os.path.isdir(
-        f"{OUT_DIR}/__pycache__"
-    ):
-        shutil.rmtree(f"{OUT_DIR}/__pycache__")
+    if args.exe and not args.no_cli:
+        build = subprocess.call(
+            [
+                "pyinstaller",
+                "cli.py",
+                "-F",
+                "--add-data",
+                "mc_version.json:.",
+            ],
+            cwd="./dist",
+            shell=True,
+        )
+        if build != 0:
+            print("[ERROR] pyinstaller has failed to build an app")
+            raise
+
+        if os.path.exists(f"{OUT_DIR}/dist/cli.exe"):
+            shutil.move(f"{OUT_DIR}/dist/cli.exe", f"{OUT_DIR}/yamcpack-cli.exe")
+        elif os.path.exists(f"{OUT_DIR}/dist/cli"):
+            shutil.move(f"{OUT_DIR}/dist/cli", f"{OUT_DIR}/yamcpack-cli")
+        else:
+            print("[ERROR] no executable found")
+            raise
+
+        print("cleanup...")
+        shutil.rmtree(f"{OUT_DIR}/dist")
+        shutil.rmtree(f"{OUT_DIR}/build")
+        os.remove(f"{OUT_DIR}/cli.spec")
+        clearCache()

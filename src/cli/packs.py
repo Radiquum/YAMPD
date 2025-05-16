@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+from sys import exit
 
 from config import PACKS_FOLDER
 from shared.packs import getPacks, createPack, deletePack

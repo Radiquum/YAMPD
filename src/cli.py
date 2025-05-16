@@ -1,6 +1,7 @@
 import os
+from sys import exit
 
-os.environ["is_dev"] = "True"
+# os.environ["is_dev"] = "True"
 os.environ["is_cli"] = "True"
 
 import argparse
@@ -31,7 +32,7 @@ console = Console()
 if __name__ == "__main__":
     args = parser.parse_args()
 
-    if os.environ["is_dev"]:
+    if os.getenv("is_dev"):
         console.print("--- DEBUG MODE ---", style="bold red")
         console.print("Provided arguments:", args)
         console.print(f"{'-':-<18}", style="bold red")
@@ -57,36 +58,3 @@ if __name__ == "__main__":
     if args.command == "pack" and args.subcommand is None:
         pack_parser.print_help()
         exit(1)
-
-#     if args.command == "packs":
-#         if args.packs_command == "new":
-#             title = input("Pack title: ")
-#             author = input("Pack author: ")
-#             game_version = input("Game version: ")
-#             mod_loader = input("Mod loader (fabric, forge, neoforge, quilt): ")
-
-#             if title == "" or author == "" or game_version == "" or mod_loader == "":
-#                 print("some parameters weren't provided")
-#                 exit(1)
-
-#             if len(game_version.split(".")) == 1:
-#                 print("wrong version format. should be int.int or int.int.int")
-#                 exit(1)
-
-#             if mod_loader.lower() not in ["fabric", "forge", "neoforge", "quilt"]:
-#                 print("wrong mod loader is provided")
-#                 exit(1)
-
-#             pack, is_exists = createPack(title, author, game_version, mod_loader)
-#             if is_exists:
-#                 print(f"Pack {pack.title} already exists")
-#             else:
-#                 print(f"Pack {pack.title} was created")
-#         elif args.packs_command == "delete":
-#             deletePack
-#             print("Del Pack")
-#         else:
-#             packs_parser.print_help()
-
-#     print("---------------")
-#     print(args)

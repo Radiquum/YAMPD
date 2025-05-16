@@ -1,7 +1,7 @@
 import { MOD_ENDPOINT } from "@/api/ENDPOINTS";
 import { Mod } from "@/types/mod";
 import { Button } from "flowbite-react";
-import { useState } from "react";
+// import { useState } from "react";
 import { HiDownload, HiTrash } from "react-icons/hi";
 import { toast } from "react-toastify";
 import {
@@ -17,10 +17,10 @@ export const ModTable = (props: {
   packID: string;
   downloadMods: (mods: string[]) => void;
 }) => {
-  function bytesToSize(bytes) {
-    var sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+  function bytesToSize(bytes: number) {
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
     if (bytes == 0) return "n/a";
-    var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
     if (i == 0) return bytes + " " + sizes[i];
     return (bytes / Math.pow(1024, i)).toFixed(1) + " " + sizes[i];
   }
@@ -55,6 +55,7 @@ export const ModTable = (props: {
           <AccordionPanel key={`mod-${mod.slug}`}>
             <AccordionTitle>
               <div className="flex gap-2 items-center text-2xl">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img alt="" src={mod.icon} className="w-8 h-8 rounded-lg" />
                 {mod.title} ({mod.slug})
               </div>
@@ -141,6 +142,7 @@ export const ModTable = (props: {
                           className="bg-[#f3f4f6] dark:bg-[#1f2937] p-4 rounded-lg"
                         >
                           <div className="flex gap-2 items-center text-xl">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               alt=""
                               src={dep.icon}
