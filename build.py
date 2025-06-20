@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import subprocess
 import os
 import shutil
@@ -56,7 +58,7 @@ if __name__ == "__main__":
     # TODO?: install node deps automatically
 
     if not args.no_rebuild:
-        build = subprocess.call(["bun", "run", "build"], cwd="./gui", shell=True)
+        build = subprocess.call(["bun", "run", "build"], cwd="./gui", shell=(os.name == "nt"))
         if build != 0:
             print("[ERROR] Next.js gui has failed to build")
             raise
@@ -110,7 +112,7 @@ if __name__ == "__main__":
                 "templates:templates",
             ],
             cwd="./dist",
-            shell=True,
+            shell=(os.name == "nt"),
         )
         if build != 0:
             print("[ERROR] pyinstaller has failed to build an app")
@@ -140,7 +142,7 @@ if __name__ == "__main__":
                 "mc_version.json:.",
             ],
             cwd="./dist",
-            shell=True,
+            shell=(os.name == "nt"),
         )
         if build != 0:
             print("[ERROR] pyinstaller has failed to build an app")

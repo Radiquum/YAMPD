@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import subprocess
 import time
 import os
@@ -13,10 +15,10 @@ if __name__ == "__main__":
     # TODO?: install node deps automatically
 
     gui_proc = subprocess.Popen(
-        ["bun", "run", "dev"], cwd="./gui", env=environment, shell=True
+        ["bun", "run", "dev"], cwd="./gui", env=environment, shell=(os.name == "nt")
     )
     app_proc = subprocess.Popen(
-        ["python", "main.py"], cwd="./src", env=environment, shell=True
+        ["python", "main.py"], cwd="./src", env=environment, shell=(os.name == "nt")
     )
 
     try:
