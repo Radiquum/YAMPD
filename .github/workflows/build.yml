@@ -20,71 +20,78 @@ jobs:
     name: "linux-build"
     runs-on: ubuntu-latest
     steps:
+      - name: "[Preparing] cloning repository"
+        uses: actions/checkout@v4
       - name: "[DEPS/Tool] bun"
         uses: oven-sh/setup-bun@v2
       - name: "[DEPS/Tool] python"
         uses: actions/setup-python@v5
         with:
           python-version: '3.13.2'
-      - name: "[Preparing] cloning repository"
-        uses: actions/checkout@v4
+          cache: 'pip'
+      - name: "[DEBUG] check if pip is installed"
+        run: |
+          which pip
+          pip --version
       - name: "[DEPS/Build] Backend"
         run: |
-          "pip install -r ./requirements.txt"
-          "pip install -r ./requirements.dev.txt"
+          pip install -r requirements.txt
+          pip install -r requirements.dev.txt
       - name: "[DEPS/Build] Frontend"
-        run: "cd ./gui && bun install && cd .."
+        run: bun install
+        working-directory: ./gui
       - name: "[Build] Building artifact"
-        run: "python ./build.py --exe"
+        run: python ./build.py --exe
       - name: "[Publish] Upload GUI Artifact"
         uses: actions/upload-artifact@v4
         with:
           name: "YAMPD-gui"
-          path: "./dist/gui"
+          path: "./gui"
+          working-directory: ./dist
           if-no-files-found: warn
           retention-days: 14
       - name: "[Publish] Upload CLI Artifact"
         uses: actions/upload-artifact@v4
         with:
           name: "YAMPD-cli"
-          path: "./dist/cli"
+          path: "./cli"
+          working-directory: ./dist
           if-no-files-found: warn
           retention-days: 14
 
-  build_windows:
-    name: "windows-build"
-    runs-on: windows-latest
-    steps:
-      - name: "[DEPS/Tool] bun"
-        uses: oven-sh/setup-bun@v2
-      - name: "[DEPS/Tool] python"
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13.2'
-      - name: "[Preparing] cloning repository"
-        uses: actions/checkout@v4
-      - name: "[DEPS/Build] Backend"
-        run: |
-          "pip install -r ./requirements.txt"
-          "pip install -r ./requirements.dev.txt"
-      - name: "[DEPS/Build] Frontend"
-        run: |
-          "cd ./gui"
-          "bun install"
-          "cd .."
-      - name: "[Build] Building artifact"
-        run: "python ./build.py --exe"
-      - name: "[Publish] Upload GUI Artifact"
-        uses: actions/upload-artifact@v4
-        with:
-          name: "YAMPD-gui.exe"
-          path: "./dist/gui.exe"
-          if-no-files-found: warn
-          retention-days: 14
-      - name: "[Publish] Upload CLI Artifact"
-        uses: actions/upload-artifact@v4
-        with:
-          name: "YAMPD-cli.exe"
-          path: "./dist/cli.exe"
-          if-no-files-found: warn
-          retention-days: 14
+  # build_windows:
+  #   name: "windows-build"
+  #   runs-on: windows-latest
+  #   steps:
+  #     - name: "[Preparing] cloning repository"
+  #       uses: actions/checkout@v4
+  #     - name: "[DEPS/Tool] bun"
+  #       uses: oven-sh/setup-bun@v2
+  #     - name: "[DEPS/Tool] python"
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.13.2'
+  #         cache: 'pip'
+  #     - name: "[DEPS/Build] Backend"
+  #       run: |
+  #         "pip install -r requirements.txt"
+  #         "pip install -r requirements.dev.txt"
+  #     - name: "[DEPS/Build] Frontend"
+  #       run: "bun install"
+  #       working-directory: ./gui
+  #     - name: "[Build] Building artifact"
+  #       run: "python ./build.py --exe"
+  #     - name: "[Publish] Upload GUI Artifact"
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: "YAMPD-gui.exe"
+  #         path: "./dist/gui.exe"
+  #         if-no-files-found: warn
+  #         retention-days: 14
+  #     - name: "[Publish] Upload CLI Artifact"
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: "YAMPD-cli.exe"
+  #         path: "./dist/cli.exe"
+  #         if-no-files-found: warn
+  #         retention-days: 14
