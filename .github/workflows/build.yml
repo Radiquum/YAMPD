@@ -45,15 +45,15 @@ jobs:
       - name: "[Publish] Upload GUI Artifact"
         uses: actions/upload-artifact@v4
         with:
-          name: "YAMPD-gui"
-          path: "./dist/gui"
+          name: "YAMPD-gui-linux"
+          path: "./dist/yamcpack"
           if-no-files-found: warn
           retention-days: 14
       - name: "[Publish] Upload CLI Artifact"
         uses: actions/upload-artifact@v4
         with:
-          name: "YAMPD-cli"
-          path: "./dist/cli"
+          name: "YAMPD-cli-linux"
+          path: "./dist/yamcpack-cli"
           if-no-files-found: warn
           retention-days: 14
 
